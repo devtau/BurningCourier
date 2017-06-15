@@ -22,8 +22,8 @@ public class TimerCommand extends SFBaseCommand {
     private int time;
     private List<Order> orders;
 
-    public TimerCommand(int _time) {
-        time = _time;
+    public TimerCommand(int time) {
+        this.time = time;
     }
 
     private TimerCommand(Parcel in) {
@@ -39,7 +39,7 @@ public class TimerCommand extends SFBaseCommand {
 
         while (orders.size() > 0) {
             try {
-                TimeUnit.MINUTES.sleep(time);
+                TimeUnit.SECONDS.sleep(time);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 data.putString(TIMER, context.getString(R.string.timer_error));

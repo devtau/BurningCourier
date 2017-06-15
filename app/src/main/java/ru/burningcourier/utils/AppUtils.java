@@ -43,7 +43,7 @@ public class AppUtils {
             if (order.timer > 0) {
                 try {
                     if (order.timer < HOUR) {
-                        format = new SimpleDateFormat("00:mm", Locale.getDefault());
+                        format = new SimpleDateFormat("00:mm:ss", Locale.getDefault());
                     } else {
                         format = new SimpleDateFormat("hh:mm", Locale.getDefault());
                     }
@@ -65,11 +65,7 @@ public class AppUtils {
     public static boolean checkConnection(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
-            return false;
-        } else {
-            return true;
-        }
+        return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
     
     public static void setAPIBase(Context context, int cityId) {
