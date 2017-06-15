@@ -1,4 +1,4 @@
-package ru.burningcourier.ui.fragments;
+package ru.burningcourier.ui;
 
 import android.app.AlertDialog;
 import android.content.Context;

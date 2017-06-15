@@ -10,22 +10,15 @@ import android.support.v4.app.DialogFragment;
 public class ProgressDialogFragment extends DialogFragment {
     
     public static final String TAG = "progress-auth-dialog";
-    private AuthInteractionListener authListener;
-    private AuthCancellerListener authCancellerListener;
+    private AuthCancellerListener listener;
     private String message;
     
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context.getClass().equals(AuthenticationActivity.class)) {
+        if (context.getClass().equals(OrdersListActivity.class)) {
             try {
-                authListener = (AuthInteractionListener) context;
-            } catch (ClassCastException e) {
-                throw new ClassCastException(context.toString() + " must implement AuthInteractionListener");
-            }
-        } else if (context.getClass().equals(OrdersListActivity.class)) {
-            try {
-                authCancellerListener = (AuthCancellerListener) context;
+                listener = (AuthCancellerListener) context;
             } catch (ClassCastException e) {
                 throw new ClassCastException(context.toString() + " must implement AuthCancellerListener");
             }
@@ -43,14 +36,13 @@ public class ProgressDialogFragment extends DialogFragment {
     @Override
     public void onCancel(DialogInterface dialog) {
         super.onCancel(dialog);
-        if (authListener != null) {
-            authListener.cancelCommand();
-        } else if (authCancellerListener != null) {
-            authCancellerListener.cancelCommand();
+        if (listener != null) {
+            listener.cancelCommand();
         }
     }
     
     public void updateProgressDialogMessage(String message) {
+        if (getDialog() == null) return;
         this.message = message;
         ((ProgressDialog) getDialog()).setMessage(message);
     }

@@ -17,7 +17,6 @@ import ru.burningcourier.handlers.impl.ApiCommands.UpdateCommand;
 import ru.burningcourier.service.GEOLocationService;
 import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
-import ru.burningcourier.ui.fragments.OrdersListFragment;
 import ru.burningcourier.utils.AppUtils;
 import ru.burningcourier.utils.HttpClient;
 

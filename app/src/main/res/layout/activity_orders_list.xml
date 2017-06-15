@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/fragment_order_list"
-        android:name="ru.burningcourier.ui.fragments.OrdersListFragment"
+        android:name="ru.burningcourier.ui.OrdersListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 </FrameLayout>
