@@ -4,12 +4,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 import ru.burningcourier.R;
 import ru.burningcourier.ui.AuthInteractionListener;
@@ -24,10 +24,6 @@ public class AuthenticationFragment extends Fragment {
     
     public AuthenticationFragment() { }
     
-    public static AuthenticationFragment newInstance() {
-        return new AuthenticationFragment();
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -36,12 +32,6 @@ public class AuthenticationFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + " must implement AuthInteractionListener");
         }
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
     }
 
     @Override
@@ -55,6 +45,14 @@ public class AuthenticationFragment extends Fragment {
         login = (EditText) view.findViewById(R.id.login);
         listener.lookForELogin(login);
         password = (EditText) view.findViewById(R.id.password);
+        Spinner citiesSpinner = (Spinner) view.findViewById(R.id.citiesSpinner);
+        citiesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View itemSelected, int selectedItemPosition, long selectedId) {
+                listener.saveCity(selectedItemPosition);
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) { }
+        });
         view.findViewById(R.id.authButton).setOnClickListener(v -> login());;
     }
     
@@ -71,11 +69,5 @@ public class AuthenticationFragment extends Fragment {
                 Toast.makeText(getContext(), getString(R.string.no_internet), Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        menu.findItem(R.id.action_city).setVisible(true);
     }
 }

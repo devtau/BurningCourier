@@ -3,9 +3,6 @@ package ru.burningcourier.ui;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 import ru.burningcourier.R;
@@ -13,8 +10,6 @@ import ru.burningcourier.handlers.impl.ApiCommands.AuthorizationCommand;
 import ru.burningcourier.handlers.impl.ApiCommands.UpdateCommand;
 import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
-import ru.burningcourier.ui.fragments.AuthenticationFragment;
-import ru.burningcourier.ui.fragments.CitiesListFragment;
 import ru.burningcourier.utils.AppUtils;
 import ru.burningcourier.utils.HttpClient;
 
@@ -28,9 +23,7 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
     private int requestId = -1;
     private ProgressDialogFragment progress;
     private long session;
-    private SharedPreferences currentLogin;
-    private SharedPreferences.Editor editorCurrentLogin;
-    private String login;
+    private String loginString;
     
     
     @Override
@@ -39,13 +32,14 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
         setContentView(R.layout.activity_authentication);
         look4City();
         check4Auth();
+        setTitle(getString(R.string.authorization));
     }
     
     @Override
     public void lookForELogin(TextView login) {
-        currentLogin = getPreferences(MODE_PRIVATE);
-        SFApplication.CURRENT_LOGIN = currentLogin.getString(PREF_LOGIN, null);
-        session = currentLogin.getLong(PREF_SESSION_TIME, 0);
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        SFApplication.CURRENT_LOGIN = preferences.getString(PREF_LOGIN, null);
+        session = preferences.getLong(PREF_SESSION_TIME, 0);
         if (SFApplication.CURRENT_LOGIN != null) {
             login.setText(SFApplication.CURRENT_LOGIN);
         }
@@ -57,22 +51,6 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
         if (requestId != -1 && !getServiceHelper().isPending(requestId) && progress != null && progress.isAdded()) {
             progress.dismiss();
         }
-    }
-    
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-    
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_city:
-                replaceFragment(CitiesListFragment.newInstance(), getString(R.string.fragment_city));
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
     
     @Override
@@ -97,7 +75,7 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
     
     @Override
     public void doAuth(String login, String password) {
-        this.login = login;
+        this.loginString = login;
         progress = new ProgressDialogFragment();
         progress.setMessage(getString(R.string.authorization));
         progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
@@ -105,13 +83,13 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
     }
     
     @Override
-    public void saveCity(int city) {
-        if (city == -1) return;
-        SFApplication.CURRENT_CITY = city;
-        currentLogin = getPreferences(MODE_PRIVATE);
-        editorCurrentLogin = currentLogin.edit();
-        editorCurrentLogin.putInt(PREF_CITY, SFApplication.CURRENT_CITY);
-        editorCurrentLogin.apply();
+    public void saveCity(int cityId) {
+        AppUtils.setAPIBase(this, cityId);
+        if (cityId == -1) return;
+        SFApplication.CURRENT_CITY = cityId;
+        SharedPreferences.Editor preferencesEditor = getPreferences(MODE_PRIVATE).edit();
+        preferencesEditor.putInt(PREF_CITY, SFApplication.CURRENT_CITY);
+        preferencesEditor.apply();
         check4Auth();
     }
     
@@ -120,45 +98,20 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
         cancelCommand(requestId);
     }
     
-    
-    private void replaceFragment(Fragment fragment, String tag) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, fragment, tag)
-                .commit();
-    }
-    
     private void check4Auth() {
         if (SFApplication.CURRENT_CITY != -1 && SFApplication.userAuth && System.currentTimeMillis() < session) {
-            Intent intent = new Intent(this, OrdersListActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(this, OrdersListActivity.class));
             finish();
         } else {
             SFApplication.userAuth = false;
         }
-        if (SFApplication.CURRENT_CITY != -1) {
-            setTitle(getString(R.string.authorization));
-            replaceFragment(AuthenticationFragment.newInstance(), getString(R.string.fragment_city));
-        } else {
-            replaceFragment(CitiesListFragment.newInstance(), getString(R.string.fragment_city));
-        }
     }
     
     private void look4City() {
-        currentLogin = getPreferences(MODE_PRIVATE);
-        SFApplication.CURRENT_CITY = currentLogin.getInt(PREF_CITY, -1);
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        SFApplication.CURRENT_CITY = preferences.getInt(PREF_CITY, -1);
         AppUtils.setAPIBase(this, SFApplication.CURRENT_CITY);
-        session = currentLogin.getLong(PREF_SESSION_TIME, 0);
-    }
-    
-    private void saveELogin() {
-        if (!login.isEmpty()) {
-            SFApplication.CURRENT_LOGIN = login;
-            currentLogin = getPreferences(MODE_PRIVATE);
-            editorCurrentLogin = currentLogin.edit();
-            editorCurrentLogin.putString(PREF_LOGIN, SFApplication.CURRENT_LOGIN);
-            editorCurrentLogin.putLong(PREF_SESSION_TIME, System.currentTimeMillis() + AppUtils.SESSION_TIME);
-            editorCurrentLogin.apply();
-        }
+        session = preferences.getLong(PREF_SESSION_TIME, 0);
     }
     
     private void authorization(int resultCode, Bundle resultData) {
@@ -172,5 +125,14 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
                 progress.dismiss();
             }
         }
+    }
+    
+    private void saveELogin() {
+        if (loginString.isEmpty()) return;
+        SFApplication.CURRENT_LOGIN = loginString;
+        SharedPreferences.Editor preferencesEditor = getPreferences(MODE_PRIVATE).edit();
+        preferencesEditor.putString(PREF_LOGIN, SFApplication.CURRENT_LOGIN);
+        preferencesEditor.putLong(PREF_SESSION_TIME, System.currentTimeMillis() + AppUtils.SESSION_TIME);
+        preferencesEditor.apply();
     }
 }

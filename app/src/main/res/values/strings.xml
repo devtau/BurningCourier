@@ -36,9 +36,9 @@
     <string name="update_error">Ошибка при получении данных</string>
     <string name="update_data">Данные получены</string>
     <string name="update_no_data">Нет заказов</string>
-    <string name="auth_error">Авторизация не пройдена, ошибка подключения</string>
+    <string name="auth_error">Авторизация не пройдена\nошибка подключения</string>
     <string name="auth_login">Авторизация выполнена</string>
-    <string name="auth_no_login">Авторизация не пройдена, не правильный логин или пароль</string>
+    <string name="auth_no_login">Авторизация не пройдена\nнеправильный логин или пароль</string>
     <string name="no_internet">Нет подключения к интернету</string>
     <string name="fill_in_all_fields">Заполните все поля</string>
 

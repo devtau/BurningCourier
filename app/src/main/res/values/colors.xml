@@ -3,7 +3,6 @@
     <color name="colorAccent">@color/colorTeal</color>
 
     <color name="auth_logo">#ffd8853d</color>
-    <color name="auth">#ffe9cb98</color>
     <color name="auth_back">#fff5ebd0</color>
     <color name="auth_button">#ffaa977f</color>
     <color name="auth_btn_text">#ff6d5f54</color>
@@ -16,4 +15,5 @@
     <color name="colorGray224">#e0e0e0</color>
     <color name="colorGray158">#9E9E9E</color>
     <color name="colorBlack">#000</color>
+    <color name="colorWhite">#fff</color>
 </resources>

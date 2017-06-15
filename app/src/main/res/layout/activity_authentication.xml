@@ -5,8 +5,9 @@
     android:background="@color/auth_back"
     android:orientation="vertical">
 
-    <FrameLayout
-        android:id="@+id/fragment_container"
+    <fragment
+        android:name="ru.burningcourier.ui.fragments.AuthenticationFragment"
+        android:id="@+id/fragment_authentication"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 </LinearLayout>
