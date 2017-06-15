@@ -1,13 +1,14 @@
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ru.burningcourier.ui.fragments.MapFragment">
+    android:orientation="horizontal"
+    tools:context="ru.burningcourier.ui.OrdersListActivity">
 
     <fragment
-        android:id="@+id/mapViewTab"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:id="@+id/fragment_order_list"
+        android:name="ru.burningcourier.ui.fragments.OrdersListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-</LinearLayout>
+</FrameLayout>

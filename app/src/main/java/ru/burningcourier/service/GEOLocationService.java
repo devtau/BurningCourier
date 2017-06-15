@@ -25,7 +25,7 @@ public class GEOLocationService extends Service implements LocationListener {
     private double latitude;
     private double longitude;
     private LocationManager locationManager;
-    private Location location;
+    private Location currentLocation;
     
     
     public GEOLocationService() { }
@@ -63,9 +63,8 @@ public class GEOLocationService extends Service implements LocationListener {
                 if (isNetworkEnabled) {
                     Log.d(LOG_TAG, "Network");
                     if (locationManager != null) {
-                        location = locationManager
-                                .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                        if (location != null) {
+                        currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                        if (currentLocation != null) {
                             setLocationParms();
                         }
                     }
@@ -74,8 +73,8 @@ public class GEOLocationService extends Service implements LocationListener {
                 if (isGPSEnabled) {
                     Log.d(LOG_TAG, "GPS Enabled");
                     if (locationManager != null) {
-                        location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        if (location != null) {
+                        currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        if (currentLocation != null) {
                             setLocationParms();
                         }
                     }
@@ -110,8 +109,8 @@ public class GEOLocationService extends Service implements LocationListener {
     }
     
     private void setLocationParms() {
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
+        latitude = currentLocation.getLatitude();
+        longitude = currentLocation.getLongitude();
     }
     
     @Override
@@ -121,7 +120,7 @@ public class GEOLocationService extends Service implements LocationListener {
     
     @Override
     public void onLocationChanged(Location location) {
-        this.location = location;
+        this.currentLocation = location;
     }
     @Override public void onStatusChanged(String s, int i, Bundle bundle) { }
     @Override public void onProviderEnabled(String s) { }

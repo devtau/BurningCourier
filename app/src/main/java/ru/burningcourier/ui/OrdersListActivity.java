@@ -8,7 +8,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.TabHost;
 import android.widget.Toast;
 import ru.burningcourier.R;
 import ru.burningcourier.adapters.OrdersAdapter;
@@ -18,35 +17,31 @@ import ru.burningcourier.handlers.impl.ApiCommands.UpdateCommand;
 import ru.burningcourier.service.GEOLocationService;
 import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
-import ru.burningcourier.ui.fragments.MapFragment;
-import ru.burningcourier.ui.fragments.OrderListFragment;
+import ru.burningcourier.ui.fragments.OrdersListFragment;
 import ru.burningcourier.utils.AppUtils;
 import ru.burningcourier.utils.HttpClient;
 
-public class TabHostActivity extends SFBaseActivity implements
+public class OrdersListActivity extends SFBaseActivity implements
         ProgressDialogFragment.AuthCancellerListener,
-        OrderListFragment.OrderListListener {
+        OrdersListFragment.OrdersListListener {
     
-    private static final String LOG_TAG = "TabHostActivity";
+    private static final String LOG_TAG = "OrdersListActivity";
     private int requestTimerId = -1;
     private int requestId = -1;
     private ProgressDialogFragment progress;
-    private TabHost.TabContentFactory tabContentFactory;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tab_host);
+        setContentView(R.layout.activity_orders_list);
         requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
-        tabContentFactory = s -> findViewById(android.R.id.tabcontent);
-        initTabs();
         startGEOSend();
     }
     
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(LOG_TAG, "TabHostActivity onPause");
+        Log.d(LOG_TAG, "OrdersListActivity onPause");
         if (isFinishing()) {
             stopGEOSend();
         }
@@ -55,7 +50,7 @@ public class TabHostActivity extends SFBaseActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(LOG_TAG, "TabHostActivity onResume");
+        Log.d(LOG_TAG, "OrdersListActivity onResume");
         if (requestId != -1) {
             if (!getServiceHelper().isPending(requestId)) {
                 if (progress != null && progress.isAdded()) {
@@ -87,7 +82,7 @@ public class TabHostActivity extends SFBaseActivity implements
     public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
         super.onServiceCallback(requestId, requestIntent, resultCode, resultData);
         if (getServiceHelper().check(requestIntent, UpdateCommand.class)) {
-            getOrders(resultCode, resultData);
+//            getOrders(resultCode, resultData);
         }
         if (getServiceHelper().check(requestIntent, SendCommand.class)) {
             getSendOrder(resultCode, resultData);
@@ -170,36 +165,8 @@ public class TabHostActivity extends SFBaseActivity implements
         }
     }
     
-    private void initTabs() {
-        TabHost.TabSpec tabSpec;
-        TabHost tabHost = (TabHost) findViewById(android.R.id.tabhost);
-        tabHost.setup();
-        
-        tabSpec = tabHost.newTabSpec(getString(R.string.list_Tab_Tag));
-        tabSpec.setIndicator(getString(R.string.list_Tab_Indicator));
-        tabSpec.setContent(tabContentFactory);
-        tabHost.addTab(tabSpec);
-        
-        tabSpec = tabHost.newTabSpec(getString(R.string.map_Tab_Tag));
-        tabSpec.setIndicator(getString(R.string.map_Tab_Indicator));
-        tabSpec.setContent(tabContentFactory);
-        tabHost.addTab(tabSpec);
-        tabHost.setOnTabChangedListener(tabTag -> {
-            if (tabTag.equals(getString(R.string.list_Tab_Tag))) {
-                Log.d(LOG_TAG, "Выбрана владка со списком");
-                replaceFragments(new OrderListFragment(), true, getString(R.string.list_Tab_Tag));
-            } else
-            if (tabTag.equals(getString(R.string.map_Tab_Tag))) {
-                Log.d(LOG_TAG, "Выбрана владка с картой");
-                replaceFragments(new MapFragment(), true, getString(R.string.map_Tab_Tag));
-            }
-        });
-        
-        replaceFragments(new OrderListFragment(), true, getString(R.string.list_Tab_Tag));
-    }
-    
     private void updateOrderList() {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag(getString(R.string.list_Tab_Tag));
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_order_list);
         if (fragment == null) return;
         OrdersAdapter ordersAdapter = (OrdersAdapter) ((ListView) findViewById(R.id.orderList)).getAdapter();
         if (ordersAdapter == null) return;

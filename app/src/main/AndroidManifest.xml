@@ -41,7 +41,7 @@
         </activity>
 
         <activity
-            android:name=".ui.TabHostActivity"
+            android:name=".ui.OrdersListActivity"
             android:label="@string/title_activity_main"
             android:screenOrientation="portrait"/>
 
@@ -52,5 +52,9 @@
         <service
             android:name=".service.GEOLocationService"
             android:exported="true"/>
+
+        <activity
+            android:name=".ui.MapsActivity"
+            android:label="@string/title_activity_maps" />
     </application>
 </manifest>

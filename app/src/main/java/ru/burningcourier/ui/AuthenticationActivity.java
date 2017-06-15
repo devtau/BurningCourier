@@ -14,7 +14,7 @@ import ru.burningcourier.handlers.impl.ApiCommands.UpdateCommand;
 import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
 import ru.burningcourier.ui.fragments.AuthenticationFragment;
-import ru.burningcourier.ui.fragments.CityListFragment;
+import ru.burningcourier.ui.fragments.CitiesListFragment;
 import ru.burningcourier.utils.AppUtils;
 import ru.burningcourier.utils.HttpClient;
 
@@ -69,7 +69,7 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_city:
-                replaceFragment(CityListFragment.newInstance(), getString(R.string.fragment_city));
+                replaceFragment(CitiesListFragment.newInstance(), getString(R.string.fragment_city));
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -88,7 +88,7 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
             if (progress != null && progress.isAdded()) {
                 progress.dismiss();
             }
-            Intent intent = new Intent(this, TabHostActivity.class);
+            Intent intent = new Intent(this, OrdersListActivity.class);
             startActivity(intent);
             Toast.makeText(this, resultData.getString(UpdateCommand.UPDATE_EXTRA), Toast.LENGTH_LONG).show();
             finish();
@@ -129,7 +129,7 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
     
     private void check4Auth() {
         if (SFApplication.CURRENT_CITY != -1 && SFApplication.userAuth && System.currentTimeMillis() < session) {
-            Intent intent = new Intent(this, TabHostActivity.class);
+            Intent intent = new Intent(this, OrdersListActivity.class);
             startActivity(intent);
             finish();
         } else {
@@ -139,7 +139,7 @@ public class AuthenticationActivity extends SFBaseActivity implements AuthIntera
             setTitle(getString(R.string.authorization));
             replaceFragment(AuthenticationFragment.newInstance(), getString(R.string.fragment_city));
         } else {
-            replaceFragment(CityListFragment.newInstance(), getString(R.string.fragment_city));
+            replaceFragment(CitiesListFragment.newInstance(), getString(R.string.fragment_city));
         }
     }
     

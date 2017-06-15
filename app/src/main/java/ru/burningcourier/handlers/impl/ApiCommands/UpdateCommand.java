@@ -13,7 +13,6 @@ import ru.burningcourier.handlers.SFBaseCommand;
 import ru.burningcourier.Order;
 import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.utils.HttpClient;
-import ru.burningcourier.utils.AppUtils;
 
 public class UpdateCommand extends SFBaseCommand {
     
@@ -35,17 +34,11 @@ public class UpdateCommand extends SFBaseCommand {
         HttpClient httpClient = new HttpClient(url);
         if (SFApplication.userAuth && httpClient.execute()) {
             try {
-                JSONArray jarrOrders = new JSONArray(httpClient.getResponseInfo());
-                SFApplication.orders.clear();
-                SFApplication.orders.trimToSize();
-                for (int i = 0; i < jarrOrders.length(); i++) {
-                    Order order = new Order();
-                    order.date = AppUtils.formatDate(jarrOrders.getJSONObject(i).getString("date"));
-                    order.timer = order.date.getTime() - System.currentTimeMillis();
-                    order.orderNum = jarrOrders.getJSONObject(i).getInt("order");
-                    order.address = jarrOrders.getJSONObject(i).getString("address");
-                    order.phone = jarrOrders.getJSONObject(i).getString("phone");
-                    order.delivered = false;
+                JSONArray jsonArray = new JSONArray(httpClient.getResponseInfo());
+                //TODO: отключить перед релизом
+//                SFApplication.orders.clear();
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    Order order = new Order(jsonArray.getJSONObject(i));
                     SFApplication.orders.add(order);
                 }
                 if (SFApplication.orders.size() == 0) {

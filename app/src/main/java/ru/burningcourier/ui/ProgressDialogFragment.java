@@ -23,7 +23,7 @@ public class ProgressDialogFragment extends DialogFragment {
             } catch (ClassCastException e) {
                 throw new ClassCastException(context.toString() + " must implement AuthInteractionListener");
             }
-        } else if (context.getClass().equals(TabHostActivity.class)) {
+        } else if (context.getClass().equals(OrdersListActivity.class)) {
             try {
                 authCancellerListener = (AuthCancellerListener) context;
             } catch (ClassCastException e) {

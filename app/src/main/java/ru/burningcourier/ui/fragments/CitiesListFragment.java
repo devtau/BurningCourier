@@ -16,17 +16,17 @@ import ru.burningcourier.R;
 import ru.burningcourier.ui.AuthInteractionListener;
 import ru.burningcourier.utils.AppUtils;
 
-public class CityListFragment extends Fragment {
+public class CitiesListFragment extends Fragment {
     
     private AuthInteractionListener listener;
     private ArrayAdapter<CharSequence> adapter;
     private MenuItem cityMenuItem;
     
     
-    public CityListFragment() { }
+    public CitiesListFragment() { }
     
-    public static CityListFragment newInstance() {
-        return new CityListFragment();
+    public static CitiesListFragment newInstance() {
+        return new CitiesListFragment();
     }
     
     @Override

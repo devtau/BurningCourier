@@ -9,28 +9,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import ru.burningcourier.Order;
 import ru.burningcourier.R;
 import ru.burningcourier.adapters.OrdersAdapter;
 import ru.burningcourier.sfClasses.SFApplication;
+import ru.burningcourier.ui.MapsActivity;
 
-public class OrderListFragment extends Fragment {
+public class OrdersListFragment extends Fragment {
     
-    private static final String LOG_TAG = "OrderListFragment";
-    private OrderListListener listener;
+    private static final String LOG_TAG = "OrdersListFragment";
+    private OrdersListListener listener;
     private OrdersAdapter adapter;
     private View deliverBtn;
     
     
-    public OrderListFragment() { }
+    public OrdersListFragment() { }
     
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         Log.d(LOG_TAG, "onAttach");
-        if (context instanceof OrderListListener) {
-            listener = (OrderListListener) context;
+        if (context instanceof OrdersListListener) {
+            listener = (OrdersListListener) context;
         } else {
-            throw new RuntimeException(context.toString() + " must implement OrderListListener");
+            throw new RuntimeException(context.toString() + " must implement OrdersListListener");
         }
     }
     
@@ -71,28 +73,32 @@ public class OrderListFragment extends Fragment {
         ListView orderList = (ListView) view.findViewById(R.id.orderList);
         orderList.setAdapter(adapter);
         orderList.setOnItemClickListener((adapterView, v, position, id) -> {
-            SFApplication.orders.trimToSize();
-            while (position >= SFApplication.orders.size()) {
-                position -= 1;
-            }
-            if (SFApplication.selectedOrder != position) {
-                if (SFApplication.selectedOrder != -1) {
-                    SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
-                }
-                SFApplication.orders.get(position).selected = true;
-                SFApplication.selectedOrder = position;
-            } else {
-                SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
-                SFApplication.selectedOrder = -1;
-            }
-            adapter.notifyDataSetChanged();
+            Order selected = SFApplication.orders.get(position);
+            MapsActivity.startActivity(getContext(), selected.addressLat, selected.addressLon, "цель");
+            
+            //TODO: это нам еще пригодится
+//            SFApplication.orders.trimToSize();
+//            while (position >= SFApplication.orders.size()) {
+//                position -= 1;
+//            }
+//            if (SFApplication.selectedOrder != position) {
+//                if (SFApplication.selectedOrder != -1) {
+//                    SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
+//                }
+//                SFApplication.orders.get(position).selected = true;
+//                SFApplication.selectedOrder = position;
+//            } else {
+//                SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
+//                SFApplication.selectedOrder = -1;
+//            }
+//            adapter.notifyDataSetChanged();
             Log.d(LOG_TAG, "list item clicked. Позиция - " + position + ", Id - " + id);
         });
     }
     
     
     
-    public interface OrderListListener {
+    public interface OrdersListListener {
         void updateOrders();
         void sendOrder();
     }

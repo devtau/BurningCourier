@@ -16,11 +16,10 @@ public class SendCommand extends SFBaseCommand {
     public static final String DELIVER_STATUS_EXTRA = "DELIVER_STATUS_EXTRA";
     private String url;
     private int orderPos;
-    private HttpClient basicAuthBCClient;
-
-    public SendCommand(String _url, int _orderPos) {
-        orderPos = _orderPos;
-        url = String.format(HttpClient.DELIVER_TEMPLATE, _url, SFApplication.CURRENT_LOGIN, SFApplication.orders.get(orderPos).orderNum);
+    
+    public SendCommand(String url, int orderPos) {
+        this.orderPos = orderPos;
+        this.url = String.format(HttpClient.DELIVER_TEMPLATE, url, SFApplication.CURRENT_LOGIN, SFApplication.orders.get(this.orderPos).orderNum);
     }
 
     private SendCommand(Parcel in) {
@@ -33,11 +32,11 @@ public class SendCommand extends SFBaseCommand {
         int deliveryStatus;
         boolean resultStatus;
         Bundle data = new Bundle();
-        basicAuthBCClient = new HttpClient(url);
-        resultStatus = basicAuthBCClient.execute();
+        HttpClient httpClient = new HttpClient(url);
+        resultStatus = httpClient.execute();
 
         if (SFApplication.userAuth && resultStatus) {
-            deliveryStatus = basicAuthBCClient.getDeliveryStatus();
+            deliveryStatus = httpClient.getDeliveryStatus();
             if (deliveryStatus == 0) {
                 data.putString(DELIVER_STATUS_EXTRA, context.getString(R.string.order_not_delivered));
                 notifyFailure(data);

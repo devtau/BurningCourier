@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/auth_back"
     android:orientation="vertical"
-    tools:context="ru.burningcourier.ui.fragments.OrderListFragment">
+    tools:context="ru.burningcourier.ui.fragments.OrdersListFragment">
 
     <ListView
         android:id="@+id/orderList"

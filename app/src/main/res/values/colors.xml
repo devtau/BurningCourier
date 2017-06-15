@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="colorAccent">@color/colorTeal</color>
+
     <color name="auth_logo">#ffd8853d</color>
     <color name="auth">#ffe9cb98</color>
     <color name="auth_back">#fff5ebd0</color>
@@ -12,5 +14,6 @@
     <color name="colorRed">#d50000</color>
     <color name="colorTeal">#00bfa5</color>
     <color name="colorGray224">#e0e0e0</color>
+    <color name="colorGray158">#9E9E9E</color>
     <color name="colorBlack">#000</color>
 </resources>

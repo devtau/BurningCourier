@@ -11,18 +11,16 @@ import java.util.Locale;
 import java.util.TimeZone;
 import ru.burningcourier.R;
 import ru.burningcourier.Order;
-import ru.burningcourier.sfClasses.SFApplication;
 
 public class AppUtils {
-    
-    private static final String LOG_TAG = "AppUtils";
-    private static final String TIME_ZONE = "GMT+00";
-    
     
     public static final int TIMER_TIME_MINUTES = 1;
     public static final long RED_TIME = 900_000;
     public static final long HOUR = 3_600_000;
     public static final long SESSION_TIME = HOUR * 8;
+    
+    private static final String LOG_TAG = "AppUtils";
+    private static final String TIME_ZONE = "GMT+00";
     
     
     public static Date formatDate(String dateString) {
@@ -62,30 +60,6 @@ public class AppUtils {
             formDate = "Заказ доставлен";
         }
         return formDate;
-    }
-    
-    public static void genOrders() {
-        Order order = new Order();
-        order.orderNum = 11114458;
-        order.date = formatDate("10.08.2015 15:45:18");
-        order.delivered = false;
-        order.timer = order.date.getTime() - System.currentTimeMillis();
-        SFApplication.orders.add(order);
-        
-        Log.d(LOG_TAG, "1) Время заказа - " + order.date);
-        Log.d(LOG_TAG, "1) Время сейчас - " + new Date(System.currentTimeMillis()));
-        Log.d(LOG_TAG, "1) Разница - " + order.timer);
-        
-        order = new Order();
-        order.orderNum = 1114458;
-        order.date = formatDate("19.08.2015 16:45:18");
-        order.delivered = false;
-        order.timer = order.date.getTime() - System.currentTimeMillis();
-        SFApplication.orders.add(order);
-        
-        Log.d(LOG_TAG, "2) Время заказа - " + order.date);
-        Log.d(LOG_TAG, "2) Время сейчас - " + new Date(System.currentTimeMillis()));
-        Log.d(LOG_TAG, "2) Разница - " + order.timer);
     }
     
     public static boolean checkConnection(Context context) {

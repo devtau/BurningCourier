@@ -2,7 +2,6 @@ package ru.burningcourier.sfClasses;
 
 import android.app.Application;
 import android.content.Intent;
-
 import java.util.ArrayList;
 import ru.burningcourier.Order;
 
@@ -25,10 +24,11 @@ public class SFApplication extends Application {
     public void onCreate() {
         super.onCreate();
         serviceHelper = new SFServiceHelper(this);
+        //TODO: отключить перед релизом
+        orders = Order.getMockOrders();
     }
 
     public SFServiceHelper getServiceHelper() {
         return serviceHelper;
     }
-
 }
