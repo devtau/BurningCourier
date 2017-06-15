@@ -3,13 +3,13 @@ package ru.burningcourier.ui;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.Toast;
-import ru.burningcourier.Order;
 import ru.burningcourier.R;
-import ru.burningcourier.adapters.OrdersAdapter;
+import ru.burningcourier.OrdersAdapter;
 import ru.burningcourier.handlers.impl.ApiCommands.SendCommand;
 import ru.burningcourier.handlers.impl.ApiCommands.TimerCommand;
 import ru.burningcourier.handlers.impl.ApiCommands.UpdateCommand;
@@ -29,7 +29,7 @@ public class OrdersListActivity extends SFBaseActivity implements
     private ProgressDialogFragment progress;
     private OrdersAdapter adapter;
     private View deliverBtn;
-    private ListView ordersList;
+    private RecyclerView ordersList;
     
     
     @Override
@@ -86,7 +86,7 @@ public class OrdersListActivity extends SFBaseActivity implements
     
     private void initUI() {
         findViewById(R.id.updateBtn).setOnClickListener(v -> updateOrders());
-        ordersList = (ListView) findViewById(R.id.ordersList);
+        ordersList = (RecyclerView) findViewById(R.id.ordersList);
         deliverBtn = findViewById(R.id.deliverBtn);
         deliverBtn.setOnClickListener(v -> {
             if ((SFApplication.selectedOrder != -1) && !SFApplication.orders.get(SFApplication.selectedOrder).delivered) {
@@ -159,12 +159,9 @@ public class OrdersListActivity extends SFBaseActivity implements
     }
     
     private void initOrdersList() {
-        adapter = new OrdersAdapter();
-        ordersList.setAdapter(adapter);
-        ordersList.setOnItemClickListener((adapterView, v, position, id) -> {
-            Log.d(LOG_TAG, "list item clicked. Позиция - " + position + ", Id - " + id);
-            Order selected = SFApplication.orders.get(position);
-            MapsActivity.startActivity(this, selected.addressLat, selected.addressLon, "цель");
+        adapter = new OrdersAdapter(SFApplication.orders, order -> {
+            Log.d(LOG_TAG, "list item clicked. order = " + order);
+            MapsActivity.startActivity(OrdersListActivity.this, order.addressLat, order.addressLon, "цель");
             
             //TODO: это нам еще пригодится
 //            SFApplication.orders.trimToSize();
@@ -183,6 +180,8 @@ public class OrdersListActivity extends SFBaseActivity implements
 //            }
 //            adapter.notifyDataSetChanged();
         });
+        ordersList.setAdapter(adapter);
+        ordersList.setLayoutManager(new LinearLayoutManager(this));
     }
     
     private void updateOrders() {

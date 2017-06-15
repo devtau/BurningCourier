@@ -7,12 +7,13 @@
     android:orientation="vertical"
     tools:context="ru.burningcourier.ui.OrdersListActivity">
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/ordersList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:smoothScrollbar="true"/>
+        android:padding="@dimen/list_padding"
+        android:clipToPadding="false"/>
 
     <LinearLayout
         android:layout_width="match_parent"
