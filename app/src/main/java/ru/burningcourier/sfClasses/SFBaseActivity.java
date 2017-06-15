@@ -46,7 +46,7 @@ public abstract class SFBaseActivity extends AppCompatActivity implements SFServ
     public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) { }
     
     @Override
-    public void cancelCommand(int _requestId) {
-        serviceHelper.cancelCommand(_requestId);
+    public void cancelCommand(int requestId) {
+        serviceHelper.cancelCommand(requestId);
     }
 }

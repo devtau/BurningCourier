@@ -76,7 +76,7 @@ public class AuthenticationActivity extends SFBaseActivity implements
     }
     
     @Override
-    public void cancelCommand() {
+    public void cancelAuthorization() {
         cancelCommand(requestId);
     }
     

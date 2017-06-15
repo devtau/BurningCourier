@@ -1,14 +1,13 @@
 package ru.burningcourier.ui;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
+import ru.burningcourier.Order;
 import ru.burningcourier.R;
 import ru.burningcourier.adapters.OrdersAdapter;
 import ru.burningcourier.handlers.impl.ApiCommands.SendCommand;
@@ -21,18 +20,23 @@ import ru.burningcourier.utils.AppUtils;
 import ru.burningcourier.utils.HttpClient;
 
 public class OrdersListActivity extends SFBaseActivity implements
-        ProgressDialogFragment.AuthCancellerListener,
-        OrdersListFragment.OrdersListListener {
+        ProgressDialogFragment.AuthCancellerListener {
     
     private static final String LOG_TAG = "OrdersListActivity";
     private int requestTimerId = -1;
     private int requestId = -1;
+    
     private ProgressDialogFragment progress;
+    private OrdersAdapter adapter;
+    private View deliverBtn;
+    private ListView ordersList;
+    
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_orders_list);
+        initUI();
         requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
         startGEOSend();
     }
@@ -40,7 +44,7 @@ public class OrdersListActivity extends SFBaseActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(LOG_TAG, "OrdersListActivity onPause");
+        Log.d(LOG_TAG, "onPause");
         if (isFinishing()) {
             stopGEOSend();
         }
@@ -49,31 +53,20 @@ public class OrdersListActivity extends SFBaseActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(LOG_TAG, "OrdersListActivity onResume");
-        if (requestId != -1) {
-            if (!getServiceHelper().isPending(requestId)) {
-                if (progress != null && progress.isAdded()) {
-                    progress.dismiss();
-                }
-            }
+        Log.d(LOG_TAG, "onResume");
+        if (requestId != -1 && !getServiceHelper().isPending(requestId) && progress != null && progress.isAdded()) {
+            progress.dismiss();
+        }
+        if (SFApplication.orders.size() == 0) {
+            deliverBtn.setVisibility(View.INVISIBLE);
+        }
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
         }
     }
     
     @Override
-    public void updateOrders() {
-        progress = new ProgressDialogFragment();
-        progress.setMessage(getString(R.string.receiving_data));
-        progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
-        requestId = getServiceHelper().ordersCommand(HttpClient.API_DB_URL + HttpClient.UPDATE_URL + SFApplication.CURRENT_LOGIN);
-    }
-    
-    @Override
-    public void sendOrder() {
-        requestId = getServiceHelper().sendCommand(HttpClient.API_DB_URL + HttpClient.DELIVER_URL, SFApplication.selectedOrder);
-    }
-    
-    @Override
-    public void cancelCommand() {
+    public void cancelAuthorization() {
         cancelCommand(requestId);
     }
     
@@ -81,7 +74,7 @@ public class OrdersListActivity extends SFBaseActivity implements
     public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
         super.onServiceCallback(requestId, requestIntent, resultCode, resultData);
         if (getServiceHelper().check(requestIntent, UpdateCommand.class)) {
-//            getOrders(resultCode, resultData);
+            getOrders(resultCode, resultData);
         }
         if (getServiceHelper().check(requestIntent, SendCommand.class)) {
             getSendOrder(resultCode, resultData);
@@ -91,21 +84,38 @@ public class OrdersListActivity extends SFBaseActivity implements
         }
     }
     
+    private void initUI() {
+        findViewById(R.id.updateBtn).setOnClickListener(v -> updateOrders());
+        ordersList = (ListView) findViewById(R.id.ordersList);
+        deliverBtn = findViewById(R.id.deliverBtn);
+        deliverBtn.setOnClickListener(v -> {
+            if ((SFApplication.selectedOrder != -1) && !SFApplication.orders.get(SFApplication.selectedOrder).delivered) {
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.adb_title)
+                        .setMessage(R.string.adb_msg)
+                        .setPositiveButton(R.string.adb_yes, (dialog, which) -> requestId = getServiceHelper()
+                                .sendCommand(HttpClient.API_DB_URL + HttpClient.DELIVER_URL, SFApplication.selectedOrder))
+                        .setNegativeButton(R.string.adb_no, null)
+                        .show();
+            }
+        });
+        initOrdersList();
+    }
     
     //Обработка данных списка заказов
     private void getOrders(int resultCode, Bundle resultData) {
         this.requestId = -1;
         if (resultCode == UpdateCommand.RESPONSE_SUCCESS) {
             SFApplication.selectedOrder = -1;
-            updateOrderList();
-            findViewById(R.id.deliverBtn).setVisibility(View.VISIBLE);
+            adapter.notifyDataSetChanged();
+            deliverBtn.setVisibility(View.VISIBLE);
             if (!getServiceHelper().isPending(requestTimerId)) {
                 requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
             }
         } else {
             Toast.makeText(this, resultData.getString(UpdateCommand.UPDATE_EXTRA), Toast.LENGTH_LONG).show();
-            findViewById(R.id.deliverBtn).setVisibility(View.INVISIBLE);
-            updateOrderList();
+            deliverBtn.setVisibility(View.INVISIBLE);
+            adapter.notifyDataSetChanged();
         }
         if (progress != null && progress.isAdded()) {
             progress.dismiss();
@@ -117,7 +127,7 @@ public class OrdersListActivity extends SFBaseActivity implements
     private void getSendOrder(int resultCode, Bundle resultData) {
         requestId = -1;
         if (resultCode == SendCommand.RESPONSE_SUCCESS) {
-            updateOrderList();
+            adapter.notifyDataSetChanged();
         }
         Toast.makeText(this, resultData.getString(SendCommand.DELIVER_STATUS_EXTRA), Toast.LENGTH_LONG).show();
     }
@@ -125,28 +135,12 @@ public class OrdersListActivity extends SFBaseActivity implements
     //Обработка таймера
     private void getTimer(int resultCode, Bundle resultData) {
         if (resultCode == TimerCommand.RESPONSE_PROGRESS) {
-            updateOrderList();
+            adapter.notifyDataSetChanged();
         } else {
             this.requestTimerId = -1;
             stopService(SFApplication.geoIntent);
             Toast.makeText(this, resultData.getString(TimerCommand.TIMER), Toast.LENGTH_LONG).show();
         }
-    }
-    
-    private void replaceFragments(Fragment fragment, boolean shouldAnimate, String tag) {
-        FragmentManager manager = getSupportFragmentManager();
-        FragmentTransaction ft = manager.beginTransaction();
-        if (shouldAnimate) {
-            // 1-появляется/2-уходит
-            if (tag.equals(getString(R.string.list_Tab_Tag))) {
-                ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
-            }
-            if (tag.equals(getString(R.string.map_Tab_Tag))) {
-                ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
-            }
-        }
-        ft.replace(android.R.id.tabcontent, fragment, tag);
-        ft.commit();
     }
     
     private void startGEOSend() {
@@ -164,11 +158,37 @@ public class OrdersListActivity extends SFBaseActivity implements
         }
     }
     
-    private void updateOrderList() {
-        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_order_list);
-        if (fragment == null) return;
-        OrdersAdapter ordersAdapter = (OrdersAdapter) ((ListView) findViewById(R.id.orderList)).getAdapter();
-        if (ordersAdapter == null) return;
-        ordersAdapter.notifyDataSetChanged();
+    private void initOrdersList() {
+        adapter = new OrdersAdapter();
+        ordersList.setAdapter(adapter);
+        ordersList.setOnItemClickListener((adapterView, v, position, id) -> {
+            Log.d(LOG_TAG, "list item clicked. Позиция - " + position + ", Id - " + id);
+            Order selected = SFApplication.orders.get(position);
+            MapsActivity.startActivity(this, selected.addressLat, selected.addressLon, "цель");
+            
+            //TODO: это нам еще пригодится
+//            SFApplication.orders.trimToSize();
+//            while (position >= SFApplication.orders.size()) {
+//                position -= 1;
+//            }
+//            if (SFApplication.selectedOrder != position) {
+//                if (SFApplication.selectedOrder != -1) {
+//                    SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
+//                }
+//                SFApplication.orders.get(position).selected = true;
+//                SFApplication.selectedOrder = position;
+//            } else {
+//                SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
+//                SFApplication.selectedOrder = -1;
+//            }
+//            adapter.notifyDataSetChanged();
+        });
+    }
+    
+    private void updateOrders() {
+        progress = new ProgressDialogFragment();
+        progress.setMessage(getString(R.string.receiving_data));
+        progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
+        requestId = getServiceHelper().ordersCommand(HttpClient.API_DB_URL + HttpClient.UPDATE_URL + SFApplication.CURRENT_LOGIN);
     }
 }
