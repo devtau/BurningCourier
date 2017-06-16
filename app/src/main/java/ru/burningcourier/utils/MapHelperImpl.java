@@ -158,7 +158,7 @@ public class MapHelperImpl implements MapHelper {
                 .position(mCurrentLocation)
                 .title("Current location")
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_my_pin));
-//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
+//                .logo(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
         mCurrLocationMarker = mMap.addMarker(markerOptions);
     }
 

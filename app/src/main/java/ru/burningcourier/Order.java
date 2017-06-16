@@ -65,10 +65,11 @@ public class Order implements Serializable {
     }
     
     //используется только для мока
-    private Order(int orderNum, Date date, String address, boolean delivered, double lat, double lon) {
+    private Order(int orderNum, Date date, String address, String note, boolean delivered, double lat, double lon) {
         this.orderNum = orderNum;
         this.date = date;
         this.address = address;
+        this.note = note;
         this.delivered = delivered;
         timer = date.getTime() - System.currentTimeMillis();
         this.addressLat = lat;
@@ -96,11 +97,16 @@ public class Order implements Serializable {
     
     public static ArrayList<Order> getMockOrders() {
         ArrayList<Order> orders = new ArrayList<>();
-        orders.add(new Order(85231, AppUtils.formatDate("15.06.2017 14:10:00"), "Санкт-Петербург, Шаумяна, 27-12", false, 59.931772, 30.415403));
-        orders.add(new Order(85232, AppUtils.formatDate("15.06.2017 14:30:00"), "Санкт-Петербург, Энергетиков, 9-1-20", false, 59.937870, 30.435815));
-        orders.add(new Order(85233, AppUtils.formatDate("15.06.2017 14:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78", false, 59.945026, 30.414169));
-        orders.add(new Order(85234, AppUtils.formatDate("15.06.2017 15:15:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78", false, 59.945026, 30.414169));
-        orders.add(new Order(85235, AppUtils.formatDate("15.06.2017 15:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78", false, 59.945026, 30.414169));
+        orders.add(new Order(85231, AppUtils.formatDate("16.06.2017 10:10:00"), "Санкт-Петербург, Шаумяна, 27-12",
+                "встретить у подъезда, домофон 125", false, 59.931772, 30.415403));
+        orders.add(new Order(85232, AppUtils.formatDate("16.06.2017 11:30:00"), "Санкт-Петербург, Энергетиков, 9-1-20",
+                "", false, 59.937870, 30.435815));
+        orders.add(new Order(85233, AppUtils.formatDate("16.06.2017 13:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+                "не звонить. все равно не открою", false, 59.945026, 30.414169));
+        orders.add(new Order(85234, AppUtils.formatDate("16.06.2017 19:15:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+                "попрыгать на месте перед собакой", false, 59.945026, 30.414169));
+        orders.add(new Order(85235, AppUtils.formatDate("16.06.2017 19:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+                "кидать камни в окно пока не открою", false, 59.945026, 30.414169));
         return orders;
     }
 }

@@ -3,70 +3,114 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/auth_back"
+    android:background="@color/colorWhite"
     android:orientation="vertical"
-    android:padding="@dimen/activity_vertical_margin"
+    android:padding="@dimen/margin_normal"
     android:gravity="center_horizontal"
     tools:context="ru.burningcourier.ui.AuthenticationActivity">
+
+    <ImageView
+        android:src="@drawable/logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"/>
 
     <TextView
         android:text="@string/app_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:textColor="@color/auth_logo"
-        android:textSize="25sp"/>
-
-    <TextView
-        android:text="@string/city_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/activity_vertical_margin"/>
+        android:layout_marginTop="@dimen/margin_normal"
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold"
+        android:textSize="18sp"/>
 
     <Spinner
         android:id="@+id/citiesSpinner"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:entries="@array/cities"/>
+        android:layout_height="50dp"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:entries="@array/cities"
+        android:theme="@style/CustomSpinner"/>
 
-    <TextView
-        android:text="@string/authorization"
-        android:layout_width="wrap_content"
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:textSize="20sp"/>
+        android:layout_marginTop="@dimen/margin_normal">
 
-    <EditText
-        android:id="@+id/login"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:padding="10dp"
-        android:background="@color/colorWhite"
-        android:hint="@string/login"
-        android:inputType="phone"
-        android:textSize="15sp">
-        <requestFocus/>
-    </EditText>
+        <EditText
+            android:id="@+id/login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:hint="@string/login"
+            android:textSize="18sp"
+            android:theme="@style/CustomEditText"/>
+    </android.support.design.widget.TextInputLayout>
 
-    <EditText
-        android:id="@+id/password"
-        android:text="1111"
+
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:padding="10dp"
-        android:background="@color/colorWhite"
-        android:hint="@string/password"
-        android:inputType="numberPassword"
-        android:textSize="15sp"/>
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal">
+
+        <EditText
+            android:id="@+id/password"
+            android:text="1111"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberPassword"
+            android:hint="@string/password"
+            android:textSize="18sp"
+            android:theme="@style/CustomEditText"/>/>
+    </android.support.design.widget.TextInputLayout>
+
+    <!--<TextView-->
+        <!--android:text="@string/authorization"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="@dimen/margin_normal"-->
+        <!--android:paddingLeft="4dp"-->
+        <!--android:paddingRight="4dp"/>-->
+
+    <!--<EditText-->
+        <!--android:id="@+id/login"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="50dp"-->
+        <!--android:layout_marginTop="@dimen/margin_normal"-->
+        <!--android:paddingTop="10dp"-->
+        <!--android:paddingBottom="10dp"-->
+        <!--android:inputType="phone"-->
+        <!--android:textSize="15sp">-->
+        <!--<requestFocus/>-->
+    <!--</EditText>-->
+
+    <!--<TextView-->
+        <!--android:text="@string/authorization"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="@dimen/margin_normal"-->
+        <!--android:paddingLeft="4dp"-->
+        <!--android:paddingRight="4dp"/>-->
+
+    <!--<EditText-->
+        <!--android:id="@+id/password"-->
+        <!--android:text="1111"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="50dp"-->
+        <!--android:paddingTop="10dp"-->
+        <!--android:paddingBottom="10dp"-->
+        <!--android:hint="@string/password"-->
+        <!--android:inputType="numberPassword"-->
+        <!--android:textSize="15sp"/>-->
 
     <Button
-        android:text="@string/auth_Button"
+        android:text="@string/enter"
         android:id="@+id/authButton"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:textColor="@color/auth_btn_text"/>
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:textColor="@color/colorWhite"
+        android:textSize="18sp"
+        style="@style/Widget.AppCompat.Button.Colored"/>
 </LinearLayout>

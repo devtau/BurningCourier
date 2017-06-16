@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">Горящий курьер 2.0</string>
-    <string name="fragment_city">City</string>
-    <string name="action_city">Город</string>
-    <string name="city_title">Выбор города</string>
+
+    <string name="title_activity_orders_list">Список заказов</string>
+    <string name="orders">Заказы</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_order">Заказ</string>
+
     <string-array name="cities">
         <item>Санкт-Петербург</item>
         <item>Москва</item>
@@ -13,13 +16,14 @@
     <string name="login">Номер телефона</string>
     <string name="password">Пароль</string>
     <string name="authorization">Авторизация</string>
-    <string name="auth_Button">Войти</string>
-    <string name="title_activity_main">Список заказов</string>
+    <string name="enter">Войти</string>
+    <string name="exit">Выйти</string>
     <string name="update">Обновить</string>
+    <string name="open_map">Открыть карту</string>
+    <string name="call">Позвонить</string>
+
     <string name="receiving_data">Получение данных</string>
     <string name="deliver">Доставить</string>
-    <string name="list_Tab_Tag">OrderListTab</string>
-    <string name="list_Tab_Indicator">Заказы</string>
     <string name="map_Tab_Tag">MapTab</string>
     <string name="map_Tab_Indicator">Карта</string>
     <string name="api_key" templateMergeStrategy="preserve" translatable="false">
@@ -54,10 +58,6 @@
     <string name="api_murman">http://91.190.82.49:8089/sw_mur/hs/</string>
     <!--адрес сервера до 01.06.17: 93.92.194.154-->
 
-
-    <string name="title_activity_maps">Map</string>
-    <string name="title_activity_cities">Выберите город</string>
-
     <string name="show_me">Show me</string>
     <string name="recenter_map">Recenter map</string>
     <string name="geo_data_unavailable">Geo data unavailable</string>
@@ -65,4 +65,6 @@
     <string name="permission_cancelled_msg_gps">Geo-location has been disabled for this app. We can\'t show your position on the map.</string>
     <string name="permission_explanation_gps">Application requires access to your location in order to show you on map and help you navigate around event\'s area.</string>
     <string name="permission_needed">Permission needed</string>
+    <string name="yandexmaps_uri_formatter" formatted="false">yandexmaps://maps.yandex.ru/?pt=%f,%f&amp;z=%d&amp;=map</string>
+    <!--yandexmaps://maps.yandex.ru/?pt=37.673098,55.757134&z=12&l=map-->
 </resources>

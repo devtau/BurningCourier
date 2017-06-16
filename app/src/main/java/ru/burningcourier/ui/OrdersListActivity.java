@@ -3,9 +3,14 @@ package ru.burningcourier.ui;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 import ru.burningcourier.R;
@@ -39,6 +44,42 @@ public class OrdersListActivity extends SFBaseActivity implements
         initUI();
         requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
         startGEOSend();
+        initToolbar();
+    }
+    
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.orders_list_menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_exit:
+                System.exit(0);
+                return true;
+            case R.id.action_update:
+                progress = new ProgressDialogFragment();
+                progress.setMessage(getString(R.string.receiving_data));
+                progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
+                requestId = getServiceHelper().ordersCommand(HttpClient.API_DB_URL + HttpClient.UPDATE_URL + SFApplication.CURRENT_LOGIN);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    
+    private void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarOrdersList);
+        setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowTitleEnabled(false);
+        } else {
+            Log.e(LOG_TAG, "unexpected state. actionBar is null");
+        }
     }
     
     @Override
@@ -85,7 +126,6 @@ public class OrdersListActivity extends SFBaseActivity implements
     }
     
     private void initUI() {
-        findViewById(R.id.updateBtn).setOnClickListener(v -> updateOrders());
         ordersList = (RecyclerView) findViewById(R.id.ordersList);
         deliverBtn = findViewById(R.id.deliverBtn);
         deliverBtn.setOnClickListener(v -> {
@@ -159,35 +199,9 @@ public class OrdersListActivity extends SFBaseActivity implements
     }
     
     private void initOrdersList() {
-        adapter = new OrdersAdapter(SFApplication.orders, order -> {
-            Log.d(LOG_TAG, "list item clicked. order = " + order);
-            MapsActivity.startActivity(OrdersListActivity.this, order.addressLat, order.addressLon, "цель");
-            
-            //TODO: это нам еще пригодится
-//            SFApplication.orders.trimToSize();
-//            while (position >= SFApplication.orders.size()) {
-//                position -= 1;
-//            }
-//            if (SFApplication.selectedOrder != position) {
-//                if (SFApplication.selectedOrder != -1) {
-//                    SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
-//                }
-//                SFApplication.orders.get(position).selected = true;
-//                SFApplication.selectedOrder = position;
-//            } else {
-//                SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
-//                SFApplication.selectedOrder = -1;
-//            }
-//            adapter.notifyDataSetChanged();
-        });
+        adapter = new OrdersAdapter(SFApplication.orders, order -> OrderActivity.startActivity(this, order));
         ordersList.setAdapter(adapter);
         ordersList.setLayoutManager(new LinearLayoutManager(this));
-    }
-    
-    private void updateOrders() {
-        progress = new ProgressDialogFragment();
-        progress.setMessage(getString(R.string.receiving_data));
-        progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
-        requestId = getServiceHelper().ordersCommand(HttpClient.API_DB_URL + HttpClient.UPDATE_URL + SFApplication.CURRENT_LOGIN);
+        ordersList.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
     }
 }

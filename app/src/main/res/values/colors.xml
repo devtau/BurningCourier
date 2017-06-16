@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorAccent">#00bfa5</color>
+    <color name="colorPrimary">#1d74cb</color>
+    <color name="colorPrimaryDark">#195ea3</color>
+    <color name="colorAccent">#1d74cb</color>
 
-    <color name="auth_logo">#ffd8853d</color>
-    <color name="auth_back">#fff5ebd0</color>
-    <color name="auth_btn_text">#ff6d5f54</color>
-
-    <color name="colorGreen">#388e3c</color>
     <color name="colorTransparent">#00000000</color>
+    <color name="colorGreen">#388e3c</color>
     <color name="colorRed">#d50000</color>
     <color name="colorGray158">#9E9E9E</color>
+    <color name="colorGray111">#6f6f6f</color>
+    <color name="colorGray58">#3a3a3a</color>
     <color name="colorBlack">#000</color>
     <color name="colorWhite">#fff</color>
 </resources>
