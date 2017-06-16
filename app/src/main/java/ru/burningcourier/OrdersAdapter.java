@@ -37,10 +37,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.OrdersView
 		holder.phone.setText(order.phone);
 		holder.note.setText(order.note);
 		
-		boolean isOrderInRedZone = order.timer <= AppUtils.RED_TIME && !order.delivered;
-		int timerTextColorId = isOrderInRedZone ? R.color.colorRed : R.color.colorGreen;
-		int timerTextColor = ContextCompat.getColor(holder.getContext(), timerTextColorId);
-		holder.timer.setTextColor(timerTextColor);
+		holder.timer.setTextColor(AppUtils.processTimerColor(order, holder.getContext()));
 		holder.timer.setText(AppUtils.formatTimer(order));
 		holder.root.setOnClickListener(v -> listener.onOrderSelected(order));
 	}

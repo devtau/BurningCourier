@@ -3,14 +3,15 @@ package ru.burningcourier.utils;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-import ru.burningcourier.R;
 import ru.burningcourier.Order;
+import ru.burningcourier.R;
 
 public class AppUtils {
     
@@ -62,26 +63,15 @@ public class AppUtils {
         return formDate;
     }
     
+    public static int processTimerColor(Order order, Context context) {
+        boolean isOrderInRedZone = order.timer <= RED_TIME && !order.delivered;
+        int timerTextColorId = isOrderInRedZone ? R.color.colorRed : R.color.colorGray111;
+        return ContextCompat.getColor(context, timerTextColorId);
+    }
+    
     public static boolean checkConnection(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
-    }
-    
-    public static void setAPIBase(Context context, int cityId) {
-        switch (cityId) {
-            case 0:
-                HttpClient.API_DB_URL = context.getString(R.string.api_piter);
-                break;
-            case 1:
-                HttpClient.API_DB_URL = context.getString(R.string.api_moskow);
-                break;
-            case 2:
-                HttpClient.API_DB_URL = context.getString(R.string.api_ural);
-                break;
-            case 3:
-                HttpClient.API_DB_URL = context.getString(R.string.api_murman);
-                break;
-        }
     }
 }

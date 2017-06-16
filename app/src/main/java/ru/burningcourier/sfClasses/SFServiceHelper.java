@@ -10,6 +10,7 @@ import android.os.ResultReceiver;
 import android.util.SparseArray;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import ru.burningcourier.Order;
 import ru.burningcourier.handlers.SFBaseCommand;
 import ru.burningcourier.handlers.impl.ApiCommands.AuthorizationCommand;
 import ru.burningcourier.handlers.impl.ApiCommands.SendCommand;
@@ -59,9 +60,9 @@ public class SFServiceHelper {
     }
 
     //Отправка заказа
-    public int sendCommand(String _url, int _selectedOrder) {
+    public int sendCommand(String url, Order order, String login) {
         final int requestId = createId();
-        Intent i = createIntent(application, new SendCommand(_url, _selectedOrder), requestId);
+        Intent i = createIntent(application, new SendCommand(url, order, login), requestId);
         return runRequest(requestId, i);
     }
 

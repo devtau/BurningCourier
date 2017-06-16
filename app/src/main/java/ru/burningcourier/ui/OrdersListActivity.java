@@ -1,6 +1,5 @@
 package ru.burningcourier.ui;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -11,7 +10,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 import ru.burningcourier.R;
 import ru.burningcourier.OrdersAdapter;
@@ -23,6 +21,7 @@ import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
 import ru.burningcourier.utils.AppUtils;
 import ru.burningcourier.utils.HttpClient;
+import ru.burningcourier.utils.PreferencesManager;
 
 public class OrdersListActivity extends SFBaseActivity implements
         ProgressDialogFragment.AuthCancellerListener {
@@ -33,18 +32,16 @@ public class OrdersListActivity extends SFBaseActivity implements
     
     private ProgressDialogFragment progress;
     private OrdersAdapter adapter;
-    private View deliverBtn;
-    private RecyclerView ordersList;
     
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_orders_list);
-        initUI();
+        initOrdersList();
+        initToolbar();
         requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
         startGEOSend();
-        initToolbar();
     }
     
     
@@ -64,7 +61,8 @@ public class OrdersListActivity extends SFBaseActivity implements
                 progress = new ProgressDialogFragment();
                 progress.setMessage(getString(R.string.receiving_data));
                 progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
-                requestId = getServiceHelper().ordersCommand(HttpClient.API_DB_URL + HttpClient.UPDATE_URL + SFApplication.CURRENT_LOGIN);
+                String login = PreferencesManager.getInstance(this).getLogin();
+                requestId = getServiceHelper().ordersCommand(HttpClient.buildUpdateUrl(login));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -98,9 +96,6 @@ public class OrdersListActivity extends SFBaseActivity implements
         if (requestId != -1 && !getServiceHelper().isPending(requestId) && progress != null && progress.isAdded()) {
             progress.dismiss();
         }
-        if (SFApplication.orders.size() == 0) {
-            deliverBtn.setVisibility(View.INVISIBLE);
-        }
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
@@ -125,36 +120,17 @@ public class OrdersListActivity extends SFBaseActivity implements
         }
     }
     
-    private void initUI() {
-        ordersList = (RecyclerView) findViewById(R.id.ordersList);
-        deliverBtn = findViewById(R.id.deliverBtn);
-        deliverBtn.setOnClickListener(v -> {
-            if ((SFApplication.selectedOrder != -1) && !SFApplication.orders.get(SFApplication.selectedOrder).delivered) {
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.adb_title)
-                        .setMessage(R.string.adb_msg)
-                        .setPositiveButton(R.string.adb_yes, (dialog, which) -> requestId = getServiceHelper()
-                                .sendCommand(HttpClient.API_DB_URL + HttpClient.DELIVER_URL, SFApplication.selectedOrder))
-                        .setNegativeButton(R.string.adb_no, null)
-                        .show();
-            }
-        });
-        initOrdersList();
-    }
-    
     //Обработка данных списка заказов
     private void getOrders(int resultCode, Bundle resultData) {
-        this.requestId = -1;
+        requestId = -1;
         if (resultCode == UpdateCommand.RESPONSE_SUCCESS) {
             SFApplication.selectedOrder = -1;
             adapter.notifyDataSetChanged();
-            deliverBtn.setVisibility(View.VISIBLE);
             if (!getServiceHelper().isPending(requestTimerId)) {
                 requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
             }
         } else {
             Toast.makeText(this, resultData.getString(UpdateCommand.UPDATE_EXTRA), Toast.LENGTH_LONG).show();
-            deliverBtn.setVisibility(View.INVISIBLE);
             adapter.notifyDataSetChanged();
         }
         if (progress != null && progress.isAdded()) {
@@ -199,6 +175,7 @@ public class OrdersListActivity extends SFBaseActivity implements
     }
     
     private void initOrdersList() {
+        RecyclerView ordersList = (RecyclerView) findViewById(R.id.ordersList);
         adapter = new OrdersAdapter(SFApplication.orders, order -> OrderActivity.startActivity(this, order));
         ordersList.setAdapter(adapter);
         ordersList.setLayoutManager(new LinearLayoutManager(this));

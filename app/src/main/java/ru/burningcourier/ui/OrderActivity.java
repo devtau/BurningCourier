@@ -1,32 +1,42 @@
 package ru.burningcourier.ui;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.List;
 import java.util.Locale;
 import ru.burningcourier.Order;
 import ru.burningcourier.R;
+import ru.burningcourier.handlers.impl.ApiCommands.SendCommand;
 import ru.burningcourier.sfClasses.SFApplication;
+import ru.burningcourier.sfClasses.SFBaseActivity;
+import ru.burningcourier.utils.AppUtils;
+import ru.burningcourier.utils.HttpClient;
+import ru.burningcourier.utils.PreferencesManager;
 
-public class OrderActivity extends AppCompatActivity {
+public class OrderActivity extends SFBaseActivity  implements
+        ProgressDialogFragment.AuthCancellerListener{
     
     private static final String ORDER_EXTRA = "ORDER_EXTRA";
     private final static String LOG_TAG = "OrderActivity";
     private Order order;
     private Toolbar toolbar;
+    private TextView orderTimer;
+    private Button deliverBtn;
+    private int requestId = -1;
     
     
     public static void startActivity(Context context, Order order) {
@@ -39,14 +49,8 @@ public class OrderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order);
-        order = (Order) getIntent().getSerializableExtra(ORDER_EXTRA);
-        toolbar = (Toolbar) findViewById(R.id.toolbarOrder);
-        String addressPlusNote = order.address;
-        if (!TextUtils.isEmpty(order.note)) {
-            addressPlusNote += ", " + order.note;
-        }
-        ((TextView) findViewById(R.id.orderAddress)).setText(addressPlusNote);
-        initToolbar();
+        order = getIntent().getParcelableExtra(ORDER_EXTRA);
+        initUI();
     }
     
     @Override
@@ -68,6 +72,47 @@ public class OrderActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+    
+    @Override
+    public void cancelAuthorization() {
+        cancelCommand(requestId);
+    }
+    
+    @Override
+    public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
+        super.onServiceCallback(requestId, requestIntent, resultCode, resultData);
+        if (getServiceHelper().check(requestIntent, SendCommand.class)) {
+            finish();
+        }
+    }
+    
+    private void initUI() {
+        deliverBtn = (Button) findViewById(R.id.deliverBtn);
+        deliverBtn.setOnClickListener(v -> {
+            if (!order.delivered) {
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.adb_title)
+                        .setMessage(R.string.adb_msg)
+                        .setPositiveButton(R.string.adb_yes, (dialog, which) -> {
+                            String login = PreferencesManager.getInstance(this).getLogin();
+                            requestId = getServiceHelper().sendCommand(HttpClient.buildDeliverUrl(), order, login);
+                        })
+                        .setNegativeButton(R.string.adb_no, null)
+                        .show();
+            }
+        });
+        String addressPlusNote = order.address;
+        if (!TextUtils.isEmpty(order.note)) {
+            addressPlusNote += ", " + order.note;
+        }
+        ((TextView) findViewById(R.id.orderAddress)).setText(addressPlusNote);
+        ((TextView) findViewById(R.id.toolbarOrderTitle)).setText(String.valueOf(order.orderNum));
+        toolbar = (Toolbar) findViewById(R.id.toolbarOrder);
+        orderTimer = (TextView) findViewById(R.id.orderTimer);
+        orderTimer.setText(AppUtils.formatTimer(order));
+        orderTimer.setTextColor(AppUtils.processTimerColor(order, this));
+        initToolbar();
     }
     
     private void initToolbar() {
@@ -96,24 +141,6 @@ public class OrderActivity extends AppCompatActivity {
             intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(Uri.parse("market://details?id=ru.yandex.yandexmaps"));
             startActivity(intent);
-        }
-    }
-    
-    //TODO: это нам еще пригодится
-    private void doSomeLegacyShit(int position) {
-        SFApplication.orders.trimToSize();
-        while (position >= SFApplication.orders.size()) {
-            position -= 1;
-        }
-        if (SFApplication.selectedOrder != position) {
-            if (SFApplication.selectedOrder != -1) {
-                SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
-            }
-            SFApplication.orders.get(position).selected = true;
-            SFApplication.selectedOrder = position;
-        } else {
-            SFApplication.orders.get(SFApplication.selectedOrder).selected = false;
-            SFApplication.selectedOrder = -1;
         }
     }
 }

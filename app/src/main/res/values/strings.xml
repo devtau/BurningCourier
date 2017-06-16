@@ -51,13 +51,6 @@
     <string name="adb_yes">Да, уверен!</string>
     <string name="adb_no">Нет, мне страшно..</string>
 
-    <!-- API DATABASE -->
-    <string name="api_piter">http://91.190.82.49/sakura/hs/</string>
-    <string name="api_moskow">http://91.190.82.49:8083/wok/hs/</string>
-    <string name="api_ural">http://91.190.82.49:8084/wokekb/hs/</string>
-    <string name="api_murman">http://91.190.82.49:8089/sw_mur/hs/</string>
-    <!--адрес сервера до 01.06.17: 93.92.194.154-->
-
     <string name="show_me">Show me</string>
     <string name="recenter_map">Recenter map</string>
     <string name="geo_data_unavailable">Geo data unavailable</string>

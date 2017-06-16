@@ -10,22 +10,30 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 
 public class HttpClient {
     
-    public static String API_DB_URL = null;
-    // private static final String API_DB_URL = "http://93.92.194.154/test_sak/hs/";
+    private static String API_DB_URL = null;
+    
+    private static final String API_PITER = "http://91.190.82.49/sakura/hs/courier/";
+    private static final String API_MOSCOW = "http://91.190.82.49:8083/wok/hs/courier/";
+    private static final String API_URAL = "http://91.190.82.49:8084/wokekb/hs/courier/";
+    private static final String API_MURMAN = "http://91.190.82.49:8089/sw_mur/hs/courier/";
+    private static final String API_TEST = "http://93.92.194.154/test_sak/hs/courier/";
+//    адрес сервера до 01.06.17: 93.92.194.154
     
     //Адреса операций API
-    public static final String AUTHORIZATION_URL = "courier/ident/";
-    public static final String UPDATE_URL = "courier/update/";
-    public static final String DELIVER_URL = "courier/deliver/";
-    public static final String SEND_GEO_URL = "courier/geo/";
+    private static final String GET_CITIES_LIST_URL = "some_static_base_url/config/";
+    private static final String AUTHORIZATION_URL = "ident/";
+//    private static final String AUTHORIZATION_URL = "auth/";
+    private static final String UPDATE_URL = "update/";
+    private static final String DELIVER_URL = "deliver/";
+    private static final String SEND_GEO_URL = "geo/";
     
-    //Шаблоны uri отправки заказа
+    //Шаблоны url отправки заказа
     public static final String DELIVER_TEMPLATE = "%1s%2s/%3s";
-    public static final String SEND_GEO_TEMPLATE = "%1s%2s/%3s/%4s";
-    public static final String SEND_GEO_SPEED_TEMPLATE = "%1s%2s/%3s/%4s/%5s";
+    private static final String SEND_GEO_TEMPLATE = "%s%s/%f/%f";
     
     private static final String LOG_TAG = "HttpClient";
     private static final String LOGIN = "mobil1";
@@ -113,7 +121,41 @@ public class HttpClient {
     }
 
     public String getResponseInfo() {
-        int i = Integer.valueOf("004762141");
         return responseInfo.toString();
+    }
+    
+    public static void setAPIBase(int cityId) {
+        switch (cityId) {
+            case 0:
+                API_DB_URL = API_PITER;
+                break;
+            case 1:
+                API_DB_URL = API_MOSCOW;
+                break;
+            case 2:
+                API_DB_URL = API_URAL;
+                break;
+            case 3:
+                API_DB_URL = API_MURMAN;
+                break;
+        }
+    }
+    
+    public static String buildAuthorizationUrl(String login, String password) {
+        return API_DB_URL + AUTHORIZATION_URL + login + "/" + password;
+    }
+    
+    public static String buildUpdateUrl(String login) {
+        return API_DB_URL + UPDATE_URL + login;
+    }
+    
+    public static String buildDeliverUrl() {
+        return API_DB_URL + DELIVER_URL;
+    }
+    
+    public static String buildSendGeoUrl(double latitude, double longitude) {
+        String uriString = String.format(Locale.US, SEND_GEO_TEMPLATE, API_DB_URL, SEND_GEO_URL, latitude, longitude);
+        uriString = uriString.replaceAll(" ", "");
+        return uriString;
     }
 }

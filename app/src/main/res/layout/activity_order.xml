@@ -15,16 +15,32 @@
         android:elevation="4dp">
 
         <TextView
-            android:text="@string/title_activity_order"
+            android:id="@+id/toolbarOrderTitle"
+            tools:text="85231"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/colorWhite"
             android:textSize="18sp"/>
     </android.support.v7.widget.Toolbar>
 
+    <Button
+        android:id="@+id/deliverBtn"
+        android:text="@string/deliver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorAccent"/>
+
     <TextView
         android:id="@+id/orderAddress"
         tools:text="@string/order_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_normal"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:id="@+id/orderTimer"
+        tools:text="01:50:30"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/margin_normal"

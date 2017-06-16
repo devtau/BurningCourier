@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.ResultReceiver;
+import ru.burningcourier.Order;
 import ru.burningcourier.R;
 import ru.burningcourier.handlers.SFBaseCommand;
 import ru.burningcourier.sfClasses.SFApplication;
@@ -15,16 +16,16 @@ public class SendCommand extends SFBaseCommand {
     
     public static final String DELIVER_STATUS_EXTRA = "DELIVER_STATUS_EXTRA";
     private String url;
-    private int orderPos;
+    private Order order;
     
-    public SendCommand(String url, int orderPos) {
-        this.orderPos = orderPos;
-        this.url = String.format(HttpClient.DELIVER_TEMPLATE, url, SFApplication.CURRENT_LOGIN, SFApplication.orders.get(this.orderPos).orderNum);
+    public SendCommand(String url, Order order, String login) {
+        this.order = order;
+        this.url = String.format(HttpClient.DELIVER_TEMPLATE, url, login, order.orderNum);
     }
 
     private SendCommand(Parcel in) {
         url = in.readString();
-        orderPos = in.readInt();
+        order = in.readParcelable(Order.class.getClassLoader());
     }
 
     @Override
@@ -42,7 +43,7 @@ public class SendCommand extends SFBaseCommand {
                 notifyFailure(data);
             }
             if (deliveryStatus == 1) {
-                SFApplication.orders.get(orderPos).delivered = true;
+                order.delivered = true;
                 data.putString(DELIVER_STATUS_EXTRA, context.getString(R.string.order_delivered));
                 notifySuccess(data);
             }
@@ -60,7 +61,7 @@ public class SendCommand extends SFBaseCommand {
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(url);
-        parcel.writeInt(orderPos);
+        parcel.writeParcelable(order, i);
     }
 
     public static final Parcelable.Creator<SendCommand> CREATOR = new Parcelable.Creator<SendCommand>() {

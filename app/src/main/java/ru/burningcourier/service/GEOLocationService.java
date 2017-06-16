@@ -89,21 +89,17 @@ public class GEOLocationService extends Service implements LocationListener {
     }
     
     private void sendGeo() {
-        int geoStatus;
-        String url = String.format(HttpClient.SEND_GEO_TEMPLATE, HttpClient.API_DB_URL + HttpClient.SEND_GEO_URL, SFApplication.CURRENT_LOGIN, latitude, longitude);
-        url = url.replaceAll(" ", "");
-        
-        HttpClient basicAuthBCClient = new HttpClient(url);
-        basicAuthBCClient.execute();
-        geoStatus = basicAuthBCClient.getGeoStatus();
+        HttpClient httpClient = new HttpClient(HttpClient.buildSendGeoUrl(latitude, longitude));
+        httpClient.execute();
+        int geoStatus = httpClient.getGeoStatus();
         
         if (SFApplication.userAuth) {
             Log.d(LOG_TAG, "Пользователь auth");
             if (geoStatus == 0) {
-                Log.d(LOG_TAG, basicAuthBCClient.getResponseInfo());
+                Log.d(LOG_TAG, httpClient.getResponseInfo());
             }
             if (geoStatus == 1) {
-                Log.d(LOG_TAG, basicAuthBCClient.getResponseInfo());
+                Log.d(LOG_TAG, httpClient.getResponseInfo());
             }
         }
     }

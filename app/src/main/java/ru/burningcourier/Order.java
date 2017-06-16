@@ -1,14 +1,15 @@
 package ru.burningcourier;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import ru.burningcourier.utils.AppUtils;
 
-public class Order implements Serializable {
+public class Order implements Parcelable {
     
     private static final String LOG_TAG = "Order";
     
@@ -77,6 +78,24 @@ public class Order implements Serializable {
         Log.d(LOG_TAG, "created new Order: " + this);
     }
     
+    private Order(Parcel in) {
+        orderNum = in.readInt();
+        date = (Date) in.readSerializable();
+        address = in.readString();
+        phone = in.readString();
+        addressLat = in.readDouble();
+        addressLon = in.readDouble();
+        paymentType = in.readString();
+        note = in.readString();
+        type = in.readString();
+        currStatus = in.readString();
+        nextStatus = in.readString();
+        delivered = in.readInt() == 1;
+        selected = in.readInt() == 1;
+        timer = in.readLong();
+    }
+    
+    
     @Override
     public String toString() {
         return "orderNum = " + orderNum
@@ -94,6 +113,38 @@ public class Order implements Serializable {
                 + ", selected = " + selected
                 + ", timer = " + timer;
     }
+    
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+    
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(orderNum);
+        dest.writeSerializable(date);
+        dest.writeString(address);
+        dest.writeString(phone);
+        dest.writeDouble(addressLat);
+        dest.writeDouble(addressLon);
+        dest.writeString(paymentType);
+        dest.writeString(note);
+        dest.writeString(type);
+        dest.writeString(currStatus);
+        dest.writeString(nextStatus);
+        dest.writeInt(delivered ? 1 : 0);
+        dest.writeInt(selected ? 1 : 0);
+        dest.writeLong(timer);
+    }
+    
+    public static final Parcelable.Creator<Order> CREATOR = new Parcelable.Creator<Order>() {
+        public Order createFromParcel(Parcel in) {
+            return new Order(in);
+        }
+        public Order[] newArray(int size) {
+            return new Order[size];
+        }
+    };
     
     public static ArrayList<Order> getMockOrders() {
         ArrayList<Order> orders = new ArrayList<>();

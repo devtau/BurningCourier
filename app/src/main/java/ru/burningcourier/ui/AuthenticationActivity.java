@@ -2,7 +2,6 @@ package ru.burningcourier.ui;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -18,22 +17,18 @@ import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
 import ru.burningcourier.utils.AppUtils;
 import ru.burningcourier.utils.HttpClient;
+import ru.burningcourier.utils.PreferencesManager;
 
 public class AuthenticationActivity extends SFBaseActivity implements
         ProgressDialogFragment.AuthCancellerListener {
-    
-    //Ключи для хранимых данных
-    public static final String PREF_LOGIN = "pref-login";
-    public static final String PREF_SESSION_TIME = "pref-session-time";
-    public static final String PREF_CITY = "pref-city";
     
     private int requestId = -1;
     private ProgressDialogFragment progress;
     private long session;
     private String loginString;
     
-    private EditText login;
-    private EditText password;
+    private EditText loginView;
+    private EditText passwordView;
     
     
     @Override
@@ -41,8 +36,13 @@ public class AuthenticationActivity extends SFBaseActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authentication);
         initUI();
-        lookForELogin();
-        look4City();
+        String login = PreferencesManager.getInstance(this).getLogin();
+        session = PreferencesManager.getInstance(this).getSessionTime();
+        if (loginView != null) {
+            loginView.setText(login);
+        }
+        HttpClient.setAPIBase(PreferencesManager.getInstance(this).getCurrentCity());
+        session = PreferencesManager.getInstance(this).getSessionTime();
         check4Auth();
         setTitle(getString(R.string.authorization));
     }
@@ -81,7 +81,7 @@ public class AuthenticationActivity extends SFBaseActivity implements
     }
     
     private void check4Auth() {
-        if (SFApplication.CURRENT_CITY != -1 && SFApplication.userAuth && System.currentTimeMillis() < session) {
+        if (PreferencesManager.getInstance(this).getCurrentCity() != -1 && SFApplication.userAuth && System.currentTimeMillis() < session) {
             startActivity(new Intent(this, OrdersListActivity.class));
             finish();
         } else {
@@ -89,18 +89,11 @@ public class AuthenticationActivity extends SFBaseActivity implements
         }
     }
     
-    private void look4City() {
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        SFApplication.CURRENT_CITY = preferences.getInt(PREF_CITY, -1);
-        AppUtils.setAPIBase(this, SFApplication.CURRENT_CITY);
-        session = preferences.getLong(PREF_SESSION_TIME, 0);
-    }
-    
     private void authorization(int resultCode, Bundle resultData) {
         if (resultCode == AuthorizationCommand.RESPONSE_SUCCESS) {
             saveELogin();
             progress.updateProgressDialogMessage(getString(R.string.receiving_data));
-            requestId = getServiceHelper().ordersCommand(HttpClient.API_DB_URL + HttpClient.UPDATE_URL + SFApplication.CURRENT_LOGIN);
+            requestId = getServiceHelper().ordersCommand(HttpClient.buildUpdateUrl(loginView.getText().toString()));
         } else {
             Toast.makeText(this, resultData.getString(AuthorizationCommand.AUTHORIZATION_STATUS_EXTRA), Toast.LENGTH_LONG).show();
             if (progress != null && progress.isAdded()) {
@@ -111,16 +104,13 @@ public class AuthenticationActivity extends SFBaseActivity implements
     
     private void saveELogin() {
         if (loginString.isEmpty()) return;
-        SFApplication.CURRENT_LOGIN = loginString;
-        SharedPreferences.Editor preferencesEditor = getPreferences(MODE_PRIVATE).edit();
-        preferencesEditor.putString(PREF_LOGIN, SFApplication.CURRENT_LOGIN);
-        preferencesEditor.putLong(PREF_SESSION_TIME, System.currentTimeMillis() + AppUtils.SESSION_TIME);
-        preferencesEditor.apply();
+        PreferencesManager.getInstance(this).setLogin(loginString);
+        PreferencesManager.getInstance(this).setSessionTime(System.currentTimeMillis() + AppUtils.SESSION_TIME);
     }
     
     private void initUI() {
-        login = (EditText) findViewById(R.id.login);
-        password = (EditText) findViewById(R.id.password);
+        loginView = (EditText) findViewById(R.id.login);
+        passwordView = (EditText) findViewById(R.id.password);
         Spinner citiesSpinner = (Spinner) findViewById(R.id.citiesSpinner);
         citiesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -129,48 +119,32 @@ public class AuthenticationActivity extends SFBaseActivity implements
             }
             @Override public void onNothingSelected(AdapterView<?> parent) { }
         });
-        findViewById(R.id.authButton).setOnClickListener(v -> login());;
-    }
-    
-    private void lookForELogin() {
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        SFApplication.CURRENT_LOGIN = preferences.getString(PREF_LOGIN, null);
-        session = preferences.getLong(PREF_SESSION_TIME, 0);
-        if (SFApplication.CURRENT_LOGIN != null) {
-            login.setText(SFApplication.CURRENT_LOGIN);
-        }
+        findViewById(R.id.authButton).setOnClickListener(v -> login());
     }
     
     private void saveCity(int cityId) {
-        AppUtils.setAPIBase(this, cityId);
         if (cityId == -1) return;
-        SFApplication.CURRENT_CITY = cityId;
-        SharedPreferences.Editor preferencesEditor = getPreferences(MODE_PRIVATE).edit();
-        preferencesEditor.putInt(PREF_CITY, SFApplication.CURRENT_CITY);
-        preferencesEditor.apply();
+        HttpClient.setAPIBase(cityId);
+        PreferencesManager.getInstance(this).setCityId(cityId);
         check4Auth();
     }
     
     private void login() {
-        if (TextUtils.isEmpty(login.getText()) || TextUtils.isEmpty(password.getText())) {
+        if (TextUtils.isEmpty(loginView.getText()) || TextUtils.isEmpty(passwordView.getText())) {
             Toast.makeText(this, getString(R.string.fill_in_all_fields), Toast.LENGTH_SHORT).show();
         } else {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(password.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+            imm.hideSoftInputFromWindow(passwordView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
             
             if (AppUtils.checkConnection(this)) {
-                doAuth(login.getText().toString(), password.getText().toString());
+                this.loginString = loginView.getText().toString();
+                progress = new ProgressDialogFragment();
+                progress.setMessage(getString(R.string.authorization));
+                progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
+                requestId = getServiceHelper().authCommand(HttpClient.buildAuthorizationUrl(loginView.getText().toString(), passwordView.getText().toString()));
             } else {
                 Toast.makeText(this, getString(R.string.no_internet), Toast.LENGTH_SHORT).show();
             }
         }
-    }
-    
-    private void doAuth(String login, String password) {
-        this.loginString = login;
-        progress = new ProgressDialogFragment();
-        progress.setMessage(getString(R.string.authorization));
-        progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
-        requestId = getServiceHelper().authCommand(HttpClient.API_DB_URL + HttpClient.AUTHORIZATION_URL + login + "/" + password);
     }
 }
