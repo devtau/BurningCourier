@@ -16,7 +16,7 @@ import ru.burningcourier.handlers.impl.ApiCommands.UpdateCommand;
 import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
 import ru.burningcourier.utils.AppUtils;
-import ru.burningcourier.utils.HttpClient;
+import ru.burningcourier.api.HttpClient;
 import ru.burningcourier.utils.PreferencesManager;
 
 public class AuthenticationActivity extends SFBaseActivity implements

@@ -12,7 +12,7 @@ import ru.burningcourier.R;
 import ru.burningcourier.handlers.SFBaseCommand;
 import ru.burningcourier.Order;
 import ru.burningcourier.sfClasses.SFApplication;
-import ru.burningcourier.utils.HttpClient;
+import ru.burningcourier.api.HttpClient;
 
 public class UpdateCommand extends SFBaseCommand {
     

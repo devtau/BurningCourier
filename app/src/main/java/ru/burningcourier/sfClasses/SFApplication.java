@@ -4,7 +4,7 @@ import android.app.Application;
 import android.content.Intent;
 import java.util.ArrayList;
 import ru.burningcourier.Order;
-import ru.burningcourier.utils.HttpClient;
+import ru.burningcourier.api.HttpClient;
 import ru.burningcourier.utils.PreferencesManager;
 
 public class SFApplication extends Application {

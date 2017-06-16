@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -16,15 +17,21 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import ru.burningcourier.Order;
 import ru.burningcourier.R;
+import ru.burningcourier.api.RESTClient;
+import ru.burningcourier.api.RESTClientImpl;
+import ru.burningcourier.api.RESTClientView;
+import ru.burningcourier.api.model.MenuCategory;
+import ru.burningcourier.api.model.Product;
 import ru.burningcourier.handlers.impl.ApiCommands.SendCommand;
-import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
 import ru.burningcourier.utils.AppUtils;
-import ru.burningcourier.utils.HttpClient;
+import ru.burningcourier.api.HttpClient;
 import ru.burningcourier.utils.PreferencesManager;
 
 public class OrderActivity extends SFBaseActivity  implements
@@ -51,6 +58,28 @@ public class OrderActivity extends SFBaseActivity  implements
         setContentView(R.layout.activity_order);
         order = getIntent().getParcelableExtra(ORDER_EXTRA);
         initUI();
+        RESTClient restClient = new RESTClientImpl(new RESTClientView() {
+            @Override
+            public void processNewMenu(List<MenuCategory> menuCategoriesList) {
+                showToast("processNewMenu menuCategoriesList size = " + menuCategoriesList.size());
+            }
+    
+            @Override
+            public void processNewProductsList(ArrayList<Product> menuCategoriesList, int categoryId) {
+                showToast("processNewProductsList");
+            }
+    
+            @Override
+            public void showToast(String msg) {
+                Toast.makeText(OrderActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+    
+            @Override
+            public Resources getResources() {
+                return null;
+            }
+        });
+        restClient.getMenu("ru", "spb");
     }
     
     @Override

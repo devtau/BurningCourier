@@ -1,4 +1,4 @@
-package ru.burningcourier.utils;
+package ru.burningcourier.api;
 
 import android.util.Base64;
 import android.util.Log;

@@ -11,7 +11,7 @@ import android.util.Log;
 import java.util.Timer;
 import java.util.TimerTask;
 import ru.burningcourier.sfClasses.SFApplication;
-import ru.burningcourier.utils.HttpClient;
+import ru.burningcourier.api.HttpClient;
 
 public class GEOLocationService extends Service implements LocationListener {
     
