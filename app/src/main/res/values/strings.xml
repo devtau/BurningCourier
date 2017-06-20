@@ -1,17 +1,10 @@
 <resources>
-    <string name="app_name">Горящий курьер 2.0</string>
+    <string name="app_name">Быстрый курьер 2.0</string>
 
     <string name="title_activity_orders_list">Список заказов</string>
     <string name="orders">Заказы</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_order">Заказ</string>
-
-    <string-array name="cities">
-        <item>Санкт-Петербург</item>
-        <item>Москва</item>
-        <item>Урал</item>
-        <item>Мурманск</item>
-    </string-array>
 
     <string name="login">Номер телефона</string>
     <string name="password">Пароль</string>
@@ -23,6 +16,7 @@
     <string name="call">Позвонить</string>
 
     <string name="receiving_data">Получение данных</string>
+    <string name="next_status">Сменить статус</string>
     <string name="deliver">Доставить</string>
     <string name="map_Tab_Tag">MapTab</string>
     <string name="map_Tab_Indicator">Карта</string>
@@ -44,6 +38,7 @@
     <string name="auth_login">Авторизация выполнена</string>
     <string name="auth_no_login">Авторизация не пройдена\nнеправильный логин или пароль</string>
     <string name="no_internet">Нет подключения к интернету</string>
+    <string name="choose_city">выберите город</string>
     <string name="fill_in_all_fields">Заполните все поля</string>
 
     <string name="adb_title">Подтверждение доставки</string>

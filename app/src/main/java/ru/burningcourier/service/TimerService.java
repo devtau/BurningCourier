@@ -5,33 +5,22 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.Process;
 import android.os.ResultReceiver;
-import android.text.TextUtils;
 import android.util.SparseArray;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import ru.burningcourier.handlers.SFBaseCommand;
 import ru.burningcourier.sfClasses.SFApplication;
 
-public class SFCommandExecutorService extends Service {
+public class TimerService extends Service {
     
     public static final String ACTION_EXECUTE_COMMAND = SFApplication.PACKAGE.concat(".ACTION_EXECUTE_COMMAND");
     public static final String ACTION_CANCEL_COMMAND = SFApplication.PACKAGE.concat(".ACTION_CANCEL_COMMAND");
     public static final String EXTRA_REQUEST_ID = SFApplication.PACKAGE.concat(".EXTRA_REQUEST_ID");
     public static final String EXTRA_STATUS_RECEIVER = SFApplication.PACKAGE.concat(".STATUS_RECEIVER");
     public static final String EXTRA_COMMAND = SFApplication.PACKAGE.concat(".EXTRA_COMMAND");
-    private static final int NUM_THREADS = 4;
-    private ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
-    
+    private ExecutorService executor = Executors.newFixedThreadPool(4);
     private SparseArray<RunningCommand> runningCommands = new SparseArray<>();
     
-    protected void onHandleIntent(Intent intent) {
-        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-        
-        String action = intent.getAction();
-        if (!TextUtils.isEmpty(action)) {
-            getCommand(intent).execute(intent, getApplicationContext(), getReceiver(intent));
-        }
-    }
     
     @Override
     public IBinder onBind(Intent intent) {
@@ -79,8 +68,8 @@ public class SFCommandExecutorService extends Service {
     private class RunningCommand implements Runnable {
         
         private Intent intent;
-        
         private SFBaseCommand command;
+        
         
         public RunningCommand(Intent intent) {
             this.intent = intent;

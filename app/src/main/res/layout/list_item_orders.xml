@@ -19,7 +19,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/orderNum"
+            android:id="@+id/orderId"
             tools:text="Заказ 123456"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -33,43 +33,6 @@
             android:layout_height="wrap_content"
             android:textColor="@color/colorGray111"
             android:textSize="13sp"/>
-
-        <LinearLayout
-            android:id="@+id/clientInfo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="5dp"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:text="@string/order_phone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:id="@+id/phone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textStyle="normal"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/order_note"
-                android:textSize="12sp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:id="@+id/note"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textStyle="normal"/>
-        </LinearLayout>
     </LinearLayout>
 
     <FrameLayout

@@ -3,6 +3,8 @@ package ru.burningcourier.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.text.TextUtils;
+
 import java.util.UUID;
 
 public class PreferencesManager {
@@ -49,20 +51,27 @@ public class PreferencesManager {
         editor.apply();
     }
     
-    public void setCityId(int cityId) {
+    public void setCityName(String cityName) {
         Editor editor = preferences.edit();
-        editor.putInt(PREF_CITY, cityId);
+        editor.putString(PREF_CITY, cityName);
         editor.apply();
     }
     
     
     //getters
     public String getDeviceId() {
-        return preferences.getString(DEVICE_ID, UUID.randomUUID().toString());
+        String deviceIdStored = preferences.getString(DEVICE_ID, "");
+        if (TextUtils.isEmpty(deviceIdStored)) {
+            deviceIdStored = UUID.randomUUID().toString();
+            Editor editor = preferences.edit();
+            editor.putString(DEVICE_ID, deviceIdStored);
+            editor.apply();
+        }
+        return deviceIdStored;
     }
     
-    public int getCurrentCity() {
-        return preferences.getInt(PREF_CITY, -1);
+    public String getCurrentCity() {
+        return preferences.getString(PREF_CITY, "");
     }
     
     public long getSessionTime() {

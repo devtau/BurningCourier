@@ -36,12 +36,7 @@
 
         <activity
             android:name=".ui.OrdersListActivity"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".ui.OrderActivity"
@@ -55,11 +50,11 @@
 
 
         <service
-            android:name=".service.SFCommandExecutorService"
+            android:name=".service.TimerService"
             android:exported="false"/>
 
         <service
-            android:name=".service.GEOLocationService"
+            android:name=".service.GeoService"
             android:exported="false"/>
     </application>
 </manifest>

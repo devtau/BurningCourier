@@ -1,14 +1,13 @@
 package ru.burningcourier.api;
 
-import android.content.res.Resources;
-import java.util.ArrayList;
 import java.util.List;
-import ru.burningcourier.api.model.MenuCategory;
-import ru.burningcourier.api.model.Product;
+import ru.burningcourier.api.model.City;
+import ru.burningcourier.api.model.Order;
 
 public interface RESTClientView {
-	void processNewMenu(List<MenuCategory> menuCategoriesList);
-	void processNewProductsList(ArrayList<Product> menuCategoriesList, int categoryId);
+	void processCitiesList(List<City> cities);
+	void processLoginSuccess(String token);
+	void processLoginFail();
+	void processOrders(List<Order> menuCategoriesList);
 	void showToast(String msg);
-	Resources getResources();
 }

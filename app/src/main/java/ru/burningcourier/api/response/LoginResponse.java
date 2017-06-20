@@ -1,29 +1,28 @@
-
 package ru.burningcourier.api.response;
 
 import com.google.gson.annotations.SerializedName;
-import ru.burningcourier.api.data.UserData;
 
 public class LoginResponse {
 
-    @SerializedName("data")
-    private UserData userData;
+    @SerializedName("token")
+    private String token;
 
-    @SerializedName("result")
-    private String result;
+    @SerializedName("name")
+    private String name;
 
-    @SerializedName("code")
-    private Integer code;
-
-    public UserData getUserData() {
-        return userData;
+    @SerializedName("point")
+    private String point;
+    
+    
+    public String getToken() {
+        return token;
     }
-
-    public String getResult() {
-        return result;
+    
+    public String getName() {
+        return name;
     }
-
-    public Integer getCode() {
-        return code;
+    
+    public String getPoint() {
+        return point;
     }
 }

@@ -1,8 +1,9 @@
-package ru.burningcourier;
+package ru.burningcourier.api.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
+import com.google.gson.annotations.SerializedName;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -13,17 +14,35 @@ public class Order implements Parcelable {
     
     private static final String LOG_TAG = "Order";
     
-    public int orderNum;
-    public Date date;
-    public String address;
-    public String phone;
     
+    @SerializedName("id")
+    public String orderId;
+    
+    @SerializedName("date")
+    public Date date;
+    
+    @SerializedName("address")
+    public String address;
+    
+    @SerializedName("lat")
     public double addressLat;
+    
+    @SerializedName("lon")
     public double addressLon;
+    
+    @SerializedName("payment_type")
     public String paymentType;
+    
+    @SerializedName("note")
     public String note;
+    
+    @SerializedName("type")
     public String type;
+    
+    @SerializedName("curr_status")
     public String currStatus;
+    
+    @SerializedName("next_status")
     public String nextStatus;
     
     public boolean delivered;
@@ -47,11 +66,9 @@ public class Order implements Parcelable {
     
     public Order(JSONObject jsonObject) throws JSONException {
         //[{"order":8819818,"date":"13.06.2017 16:48:20","address":"Санкт-Петербург,Маршала Блюхера,47,53","phone":"89626920375"}]
-        orderNum = jsonObject.getInt(Order.ORDER);
+        orderId = jsonObject.getString(Order.ORDER);
         date = AppUtils.formatDate(jsonObject.getString(Order.DATE));
         address = jsonObject.getString(Order.ADDRESS);
-        phone = jsonObject.getString(Order.PHONE);
-        
         addressLat = jsonObject.getDouble(Order.LAT);
         addressLon = jsonObject.getDouble(Order.LON);
         paymentType = jsonObject.getString(Order.PAYMENT_TYPE);
@@ -66,8 +83,8 @@ public class Order implements Parcelable {
     }
     
     //используется только для мока
-    private Order(int orderNum, Date date, String address, String note, boolean delivered, double lat, double lon) {
-        this.orderNum = orderNum;
+    private Order(String orderId, Date date, String address, String note, boolean delivered, double lat, double lon) {
+        this.orderId = orderId;
         this.date = date;
         this.address = address;
         this.note = note;
@@ -79,10 +96,9 @@ public class Order implements Parcelable {
     }
     
     private Order(Parcel in) {
-        orderNum = in.readInt();
+        orderId = in.readString();
         date = (Date) in.readSerializable();
         address = in.readString();
-        phone = in.readString();
         addressLat = in.readDouble();
         addressLon = in.readDouble();
         paymentType = in.readString();
@@ -98,10 +114,9 @@ public class Order implements Parcelable {
     
     @Override
     public String toString() {
-        return "orderNum = " + orderNum
+        return "orderId = " + orderId
                 + ", date = " + date
                 + ", address = " + address
-                + ", phone = " + phone
                 + ", addressLat = " + addressLat
                 + ", addressLon = " + addressLon
                 + ", paymentType = " + paymentType
@@ -121,10 +136,9 @@ public class Order implements Parcelable {
     
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(orderNum);
+        dest.writeString(orderId);
         dest.writeSerializable(date);
         dest.writeString(address);
-        dest.writeString(phone);
         dest.writeDouble(addressLat);
         dest.writeDouble(addressLon);
         dest.writeString(paymentType);
@@ -148,15 +162,15 @@ public class Order implements Parcelable {
     
     public static ArrayList<Order> getMockOrders() {
         ArrayList<Order> orders = new ArrayList<>();
-        orders.add(new Order(85231, AppUtils.formatDate("16.06.2017 10:10:00"), "Санкт-Петербург, Шаумяна, 27-12",
+        orders.add(new Order("SW-977-666-245-064", AppUtils.formatDate("20.06.2017 10:10:00"), "Санкт-Петербург, Шаумяна, 27-12",
                 "встретить у подъезда, домофон 125", false, 59.931772, 30.415403));
-        orders.add(new Order(85232, AppUtils.formatDate("16.06.2017 11:30:00"), "Санкт-Петербург, Энергетиков, 9-1-20",
+        orders.add(new Order("SW-977-666-245-065", AppUtils.formatDate("20.06.2017 11:30:00"), "Санкт-Петербург, Энергетиков, 9-1-20",
                 "", false, 59.937870, 30.435815));
-        orders.add(new Order(85233, AppUtils.formatDate("16.06.2017 13:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-066", AppUtils.formatDate("20.06.2017 13:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "не звонить. все равно не открою", false, 59.945026, 30.414169));
-        orders.add(new Order(85234, AppUtils.formatDate("16.06.2017 19:15:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-067", AppUtils.formatDate("20.06.2017 19:15:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "попрыгать на месте перед собакой", false, 59.945026, 30.414169));
-        orders.add(new Order(85235, AppUtils.formatDate("16.06.2017 19:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-068", AppUtils.formatDate("20.06.2017 19:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "кидать камни в окно пока не открою", false, 59.945026, 30.414169));
         return orders;
     }

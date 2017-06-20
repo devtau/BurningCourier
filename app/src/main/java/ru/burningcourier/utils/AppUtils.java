@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-import ru.burningcourier.Order;
+import ru.burningcourier.api.model.Order;
 import ru.burningcourier.R;
 
 public class AppUtils {
@@ -19,6 +19,8 @@ public class AppUtils {
     public static final long RED_TIME = 900_000;
     public static final long HOUR = 3_600_000;
     public static final long SESSION_TIME = HOUR * 8;
+    public static final String DATE_FORMAT = "yyyyMMddHHmmss";
+    public static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
     
     private static final String LOG_TAG = "AppUtils";
     private static final String TIME_ZONE = "GMT+00";

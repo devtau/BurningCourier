@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 
 public class ProgressDialogFragment extends DialogFragment {
     
@@ -17,12 +18,10 @@ public class ProgressDialogFragment extends DialogFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context.getClass().equals(OrdersListActivity.class)) {
-            try {
-                listener = (AuthCancellerListener) context;
-            } catch (ClassCastException e) {
-                throw new ClassCastException(context.toString() + " must implement AuthCancellerListener");
-            }
+        try {
+            listener = (AuthCancellerListener) context;
+        } catch (ClassCastException e) {
+            Log.d(TAG, "AuthCancellerListener not implemented by caller");
         }
     }
     

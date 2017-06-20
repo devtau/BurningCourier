@@ -1,4 +1,4 @@
-package ru.burningcourier.handlers.impl.ApiCommands;
+package ru.burningcourier.handlers;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import ru.burningcourier.R;
-import ru.burningcourier.handlers.SFBaseCommand;
-import ru.burningcourier.Order;
+import ru.burningcourier.api.model.Order;
 import ru.burningcourier.sfClasses.SFApplication;
 
 public class TimerCommand extends SFBaseCommand {

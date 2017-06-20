@@ -5,18 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.os.ResultReceiver;
 import android.util.SparseArray;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import ru.burningcourier.Order;
 import ru.burningcourier.handlers.SFBaseCommand;
-import ru.burningcourier.handlers.impl.ApiCommands.AuthorizationCommand;
-import ru.burningcourier.handlers.impl.ApiCommands.SendCommand;
-import ru.burningcourier.handlers.impl.ApiCommands.TimerCommand;
-import ru.burningcourier.handlers.impl.ApiCommands.UpdateCommand;
-import ru.burningcourier.service.SFCommandExecutorService;
+import ru.burningcourier.handlers.TimerCommand;
+import ru.burningcourier.service.TimerService;
 
 public class SFServiceHelper {
 
@@ -38,20 +33,6 @@ public class SFServiceHelper {
         currentListeners.remove(currentListener);
     }
 
-    //Авторизация пользователя
-    public int authCommand(String _url) {
-        final int requestId = createId();
-        Intent i = createIntent(application, new AuthorizationCommand(_url), requestId);
-        return runRequest(requestId, i);
-    }
-
-    //Получение списка заказов
-    public int ordersCommand(String _url) {
-        final int requestId = createId();
-        Intent i = createIntent(application, new UpdateCommand(_url), requestId);
-        return runRequest(requestId, i);
-    }
-
     //Запуск таймера
     public int timerCommand(int time) {
         final int requestId = createId();
@@ -59,28 +40,16 @@ public class SFServiceHelper {
         return runRequest(requestId, i);
     }
 
-    //Отправка заказа
-    public int sendCommand(String url, Order order, String login) {
-        final int requestId = createId();
-        Intent i = createIntent(application, new SendCommand(url, order, login), requestId);
-        return runRequest(requestId, i);
-    }
-
     public void cancelCommand(int requestId) {
-        Intent i = new Intent(application, SFCommandExecutorService.class);
-        i.setAction(SFCommandExecutorService.ACTION_CANCEL_COMMAND);
-        i.putExtra(SFCommandExecutorService.EXTRA_REQUEST_ID, requestId);
+        Intent i = new Intent(application, TimerService.class);
+        i.setAction(TimerService.ACTION_CANCEL_COMMAND);
+        i.putExtra(TimerService.EXTRA_REQUEST_ID, requestId);
         application.startService(i);
         pendingActivities.remove(requestId);
     }
 
     public boolean isPending(int requestId){
         return pendingActivities.get(requestId) != null;
-    }
-
-    public boolean check(Intent intent, Class<? extends SFBaseCommand> clazz) {
-        Parcelable commandExtra = intent.getParcelableExtra(SFCommandExecutorService.EXTRA_COMMAND);
-        return commandExtra != null && commandExtra.getClass().equals(clazz);
     }
 
     private int createId() {
@@ -94,11 +63,11 @@ public class SFServiceHelper {
     }
 
     private Intent createIntent(final Context context, SFBaseCommand command, final int requestId) {
-        Intent intent = new Intent(context, SFCommandExecutorService.class);
-        intent.setAction(SFCommandExecutorService.ACTION_EXECUTE_COMMAND);
-        intent.putExtra(SFCommandExecutorService.EXTRA_COMMAND, command);
-        intent.putExtra(SFCommandExecutorService.EXTRA_REQUEST_ID, requestId);
-        intent.putExtra(SFCommandExecutorService.EXTRA_STATUS_RECEIVER,
+        Intent intent = new Intent(context, TimerService.class);
+        intent.setAction(TimerService.ACTION_EXECUTE_COMMAND);
+        intent.putExtra(TimerService.EXTRA_COMMAND, command);
+        intent.putExtra(TimerService.EXTRA_REQUEST_ID, requestId);
+        intent.putExtra(TimerService.EXTRA_STATUS_RECEIVER,
                    new ResultReceiver(new Handler()) {
                        @Override
                        protected void onReceiveResult(int resultCode, Bundle resultData) {

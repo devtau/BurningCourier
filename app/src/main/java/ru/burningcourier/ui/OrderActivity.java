@@ -5,45 +5,37 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.net.Uri;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import ru.burningcourier.Order;
+import ru.burningcourier.api.model.Order;
 import ru.burningcourier.R;
 import ru.burningcourier.api.RESTClient;
 import ru.burningcourier.api.RESTClientImpl;
 import ru.burningcourier.api.RESTClientView;
-import ru.burningcourier.api.model.MenuCategory;
-import ru.burningcourier.api.model.Product;
-import ru.burningcourier.handlers.impl.ApiCommands.SendCommand;
-import ru.burningcourier.sfClasses.SFBaseActivity;
+import ru.burningcourier.api.model.City;
 import ru.burningcourier.utils.AppUtils;
-import ru.burningcourier.api.HttpClient;
 import ru.burningcourier.utils.PreferencesManager;
 
-public class OrderActivity extends SFBaseActivity  implements
-        ProgressDialogFragment.AuthCancellerListener{
+public class OrderActivity extends AppCompatActivity {
     
     private static final String ORDER_EXTRA = "ORDER_EXTRA";
     private final static String LOG_TAG = "OrderActivity";
     private Order order;
+    private RESTClient restClient;
     private Toolbar toolbar;
     private TextView orderTimer;
-    private Button deliverBtn;
-    private int requestId = -1;
+    private TextView nextStatus;
     
     
     public static void startActivity(Context context, Order order) {
@@ -58,28 +50,7 @@ public class OrderActivity extends SFBaseActivity  implements
         setContentView(R.layout.activity_order);
         order = getIntent().getParcelableExtra(ORDER_EXTRA);
         initUI();
-        RESTClient restClient = new RESTClientImpl(new RESTClientView() {
-            @Override
-            public void processNewMenu(List<MenuCategory> menuCategoriesList) {
-                showToast("processNewMenu menuCategoriesList size = " + menuCategoriesList.size());
-            }
-    
-            @Override
-            public void processNewProductsList(ArrayList<Product> menuCategoriesList, int categoryId) {
-                showToast("processNewProductsList");
-            }
-    
-            @Override
-            public void showToast(String msg) {
-                Toast.makeText(OrderActivity.this, msg, Toast.LENGTH_SHORT).show();
-            }
-    
-            @Override
-            public Resources getResources() {
-                return null;
-            }
-        });
-        restClient.getMenu("ru", "spb");
+        restClient = new RESTClientImpl(new RESTClientViewImpl());
     }
     
     @Override
@@ -103,29 +74,16 @@ public class OrderActivity extends SFBaseActivity  implements
         }
     }
     
-    @Override
-    public void cancelAuthorization() {
-        cancelCommand(requestId);
-    }
-    
-    @Override
-    public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
-        super.onServiceCallback(requestId, requestIntent, resultCode, resultData);
-        if (getServiceHelper().check(requestIntent, SendCommand.class)) {
-            finish();
-        }
-    }
-    
     private void initUI() {
-        deliverBtn = (Button) findViewById(R.id.deliverBtn);
-        deliverBtn.setOnClickListener(v -> {
+        nextStatus = (TextView) findViewById(R.id.nextStatus);
+        nextStatus.setOnClickListener(v -> {
             if (!order.delivered) {
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.adb_title)
                         .setMessage(R.string.adb_msg)
                         .setPositiveButton(R.string.adb_yes, (dialog, which) -> {
                             String login = PreferencesManager.getInstance(this).getLogin();
-                            requestId = getServiceHelper().sendCommand(HttpClient.buildDeliverUrl(), order, login);
+//                            restClient.changeOrderStatus();
                         })
                         .setNegativeButton(R.string.adb_no, null)
                         .show();
@@ -136,7 +94,7 @@ public class OrderActivity extends SFBaseActivity  implements
             addressPlusNote += ", " + order.note;
         }
         ((TextView) findViewById(R.id.orderAddress)).setText(addressPlusNote);
-        ((TextView) findViewById(R.id.toolbarOrderTitle)).setText(String.valueOf(order.orderNum));
+        ((TextView) findViewById(R.id.toolbarOrderTitle)).setText(String.valueOf(order.orderId));
         toolbar = (Toolbar) findViewById(R.id.toolbarOrder);
         orderTimer = (TextView) findViewById(R.id.orderTimer);
         orderTimer.setText(AppUtils.formatTimer(order));
@@ -170,6 +128,34 @@ public class OrderActivity extends SFBaseActivity  implements
             intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(Uri.parse("market://details?id=ru.yandex.yandexmaps"));
             startActivity(intent);
+        }
+    }
+    
+    
+    
+    private class RESTClientViewImpl implements RESTClientView {
+        @Override
+        public void processCitiesList(List<City> cities) {/*NOP*/}
+    
+        @Override
+        public void processLoginSuccess(String token) {/*NOP*/}
+    
+        @Override
+        public void processLoginFail() {/*NOP*/}
+    
+        @Override
+        public void processOrders(List<Order> orders) {
+            showToast("processOrders orders size = " + orders.size());
+        }
+    
+//        @Override
+//        public void processOrderStatusChanged() {
+//            restClient.getOrders(SFApplication.cities.get(0).getUrl(), SFApplication.token);
+//        }
+    
+        @Override
+        public void showToast(String msg) {
+            Toast.makeText(OrderActivity.this, msg, Toast.LENGTH_SHORT).show();
         }
     }
 }

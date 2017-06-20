@@ -1,30 +1,38 @@
 package ru.burningcourier.ui;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+import java.util.ArrayList;
+import java.util.List;
 import ru.burningcourier.R;
 import ru.burningcourier.OrdersAdapter;
-import ru.burningcourier.handlers.impl.ApiCommands.SendCommand;
-import ru.burningcourier.handlers.impl.ApiCommands.TimerCommand;
-import ru.burningcourier.handlers.impl.ApiCommands.UpdateCommand;
-import ru.burningcourier.service.GEOLocationService;
+import ru.burningcourier.api.RESTClient;
+import ru.burningcourier.api.RESTClientImpl;
+import ru.burningcourier.api.RESTClientView;
+import ru.burningcourier.api.model.City;
+import ru.burningcourier.api.model.Order;
+import ru.burningcourier.handlers.TimerCommand;
+import ru.burningcourier.service.GeoService;
 import ru.burningcourier.sfClasses.SFApplication;
 import ru.burningcourier.sfClasses.SFBaseActivity;
 import ru.burningcourier.utils.AppUtils;
-import ru.burningcourier.api.HttpClient;
 import ru.burningcourier.utils.PreferencesManager;
 
-public class OrdersListActivity extends SFBaseActivity implements
-        ProgressDialogFragment.AuthCancellerListener {
+public class OrdersListActivity extends SFBaseActivity {
     
     private static final String LOG_TAG = "OrdersListActivity";
     private int requestTimerId = -1;
@@ -32,6 +40,10 @@ public class OrdersListActivity extends SFBaseActivity implements
     
     private ProgressDialogFragment progress;
     private OrdersAdapter adapter;
+    private RESTClient restClient;
+    private GeoService geoService;
+    private boolean mBound = false;
+    private ServiceConnection sConn;
     
     
     @Override
@@ -42,6 +54,21 @@ public class OrdersListActivity extends SFBaseActivity implements
         initToolbar();
         requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
         startGEOSend();
+    
+        sConn = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className, IBinder service) {
+                GeoService.LocalBinder binder = (GeoService.LocalBinder) service;
+                geoService = binder.getService();
+                mBound = true;
+            }
+        
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mBound = false;
+            }
+        };
+        restClient = new RESTClientImpl(new RESTClientViewImpl());
     }
     
     
@@ -61,11 +88,30 @@ public class OrdersListActivity extends SFBaseActivity implements
                 progress = new ProgressDialogFragment();
                 progress.setMessage(getString(R.string.receiving_data));
                 progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
-                String login = PreferencesManager.getInstance(this).getLogin();
-                requestId = getServiceHelper().ordersCommand(HttpClient.buildUpdateUrl(login));
+                
+                String savedCityName = PreferencesManager.getInstance(OrdersListActivity.this).getCurrentCity();
+                String cityUrl = City.getUrlByName(savedCityName);
+                if (!TextUtils.isEmpty(cityUrl)) {
+                    restClient.getOrders(cityUrl, SFApplication.token, geoService.getGeoList());
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        bindService(new Intent(this, GeoService.class), sConn, Context.BIND_AUTO_CREATE);
+    }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mBound) {
+            unbindService(sConn);
+            mBound = false;
         }
     }
     
@@ -101,53 +147,6 @@ public class OrdersListActivity extends SFBaseActivity implements
         }
     }
     
-    @Override
-    public void cancelAuthorization() {
-        cancelCommand(requestId);
-    }
-    
-    @Override
-    public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
-        super.onServiceCallback(requestId, requestIntent, resultCode, resultData);
-        if (getServiceHelper().check(requestIntent, UpdateCommand.class)) {
-            getOrders(resultCode, resultData);
-        }
-        if (getServiceHelper().check(requestIntent, SendCommand.class)) {
-            getSendOrder(resultCode, resultData);
-        }
-        if (getServiceHelper().check(requestIntent, TimerCommand.class)) {
-            getTimer(resultCode, resultData);
-        }
-    }
-    
-    //Обработка данных списка заказов
-    private void getOrders(int resultCode, Bundle resultData) {
-        requestId = -1;
-        if (resultCode == UpdateCommand.RESPONSE_SUCCESS) {
-            SFApplication.selectedOrder = -1;
-            adapter.notifyDataSetChanged();
-            if (!getServiceHelper().isPending(requestTimerId)) {
-                requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
-            }
-        } else {
-            Toast.makeText(this, resultData.getString(UpdateCommand.UPDATE_EXTRA), Toast.LENGTH_LONG).show();
-            adapter.notifyDataSetChanged();
-        }
-        if (progress != null && progress.isAdded()) {
-            progress.dismiss();
-            progress = null;
-        }
-    }
-    
-    //Обработка отправленного заказа
-    private void getSendOrder(int resultCode, Bundle resultData) {
-        requestId = -1;
-        if (resultCode == SendCommand.RESPONSE_SUCCESS) {
-            adapter.notifyDataSetChanged();
-        }
-        Toast.makeText(this, resultData.getString(SendCommand.DELIVER_STATUS_EXTRA), Toast.LENGTH_LONG).show();
-    }
-    
     //Обработка таймера
     private void getTimer(int resultCode, Bundle resultData) {
         if (resultCode == TimerCommand.RESPONSE_PROGRESS) {
@@ -161,7 +160,7 @@ public class OrdersListActivity extends SFBaseActivity implements
     
     private void startGEOSend() {
         if (SFApplication.geoLocation) {
-            SFApplication.geoIntent = new Intent(this, GEOLocationService.class);
+            SFApplication.geoIntent = new Intent(this, GeoService.class);
             startService(SFApplication.geoIntent);
         }
     }
@@ -180,5 +179,40 @@ public class OrdersListActivity extends SFBaseActivity implements
         ordersList.setAdapter(adapter);
         ordersList.setLayoutManager(new LinearLayoutManager(this));
         ordersList.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+    }
+    
+    
+    private class RESTClientViewImpl implements RESTClientView {
+        @Override
+        public void processCitiesList(List<City> cities) {/*NOP*/}
+        
+        @Override
+        public void processLoginSuccess(String token) {/*NOP*/}
+        
+        @Override
+        public void processLoginFail() {/*NOP*/}
+        
+        @Override
+        public void processOrders(List<Order> orders) {
+            showToast("processOrders orders size = " + orders.size());
+            SFApplication.orders = (ArrayList<Order>) orders;
+            adapter.notifyDataSetChanged();
+            if (!getServiceHelper().isPending(requestTimerId)) {
+                requestTimerId = getServiceHelper().timerCommand(AppUtils.TIMER_TIME_MINUTES);
+            }
+            if (progress != null && progress.isAdded()) {
+                progress.dismiss();
+            }
+        }
+
+//            @Override
+//            public void processOrderStatusChanged() {
+//                restClient.getOrders(SFApplication.cities.get(0).getUrl(), SFApplication.token);
+//            }
+        
+        @Override
+        public void showToast(String msg) {
+            Toast.makeText(OrdersListActivity.this, msg, Toast.LENGTH_SHORT).show();
+        }
     }
 }

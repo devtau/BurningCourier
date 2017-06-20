@@ -2,7 +2,10 @@ package ru.burningcourier.api;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
@@ -12,14 +15,14 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import ru.burningcourier.api.requestBody.LoginBody;
-import ru.burningcourier.api.requestBody.PhoneValidationBody;
-import ru.burningcourier.api.requestBody.RegistrationBody;
-import ru.burningcourier.api.response.ImageResponse;
+import ru.burningcourier.api.model.Geo;
+import ru.burningcourier.api.requestBody.LoginRequestBody;
+import ru.burningcourier.api.requestBody.OrdersRequestBody;
+import ru.burningcourier.api.response.CitiesListResponse;
 import ru.burningcourier.api.response.LoginResponse;
-import ru.burningcourier.api.response.MenuCategoryDetailsResponse;
-import ru.burningcourier.api.response.MenuResponse;
-import ru.burningcourier.api.response.RegistrationResponse;
+import ru.burningcourier.api.response.OrdersResponse;
+import ru.burningcourier.utils.AppUtils;
+
 /**
  * library authors page: http://square.github.io/retrofit/
  */
@@ -36,138 +39,72 @@ public class RESTClientImpl implements RESTClient {
 	public RESTClientImpl(RESTClientView view) {
 		this.view = view;
 	}
-
-
+	
+	
 	@Override
-	public void validatePhone(String phone) {
-		Call<Void> call = getBackendAPIClient().validatePhone(new PhoneValidationBody(phone));
-		Callback<Void> callback = new Callback<Void>() {
+	public void getCitiesList() {
+		Call<CitiesListResponse> call = getBackendAPIClient(BackendAPI.BC_API_BASE_URL).getCitiesList();
+		Callback<CitiesListResponse> callback = new Callback<CitiesListResponse>() {
 			@Override
-			public void onResponse (Call<Void> call, Response<Void> response){
+			public void onResponse (Call<CitiesListResponse> call, Response<CitiesListResponse> response){
 				if (response.isSuccessful()) {
-					Log.d(LOG_TAG, "retrofit response isSuccessful");
+					Log.d(LOG_TAG, "retrofit getCitiesList response isSuccessful");
+					view.processCitiesList(response.body().getCities());
 				} else {
 					handleError(response.code(), response.errorBody());
 				}
 			}
-
+			
 			@Override
-			public void onFailure (Call <Void> call, Throwable t){
+			public void onFailure (Call <CitiesListResponse> call, Throwable t){
 				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}
 		};
 		call.enqueue(callback);
 	}
-
+	
 	@Override
-	public void registerNewUser(String phone, String password, int smsValidationCode, String name, String birthday,
-								String sex, String email, String socialProvider, String socialId) {
-		RegistrationBody body = new RegistrationBody(phone, password, smsValidationCode, name, birthday, sex, email, socialProvider, socialId);
-		Call<RegistrationResponse> call = getBackendAPIClient().registerNewUser(body);
-		Callback<RegistrationResponse> callback = new Callback<RegistrationResponse>() {
-			@Override
-			public void onResponse (Call<RegistrationResponse> call, Response<RegistrationResponse> response){
-				if (response.isSuccessful()) {
-					Log.d(LOG_TAG, "retrofit response isSuccessful");
-				} else {
-					handleError(response.code(), response.errorBody());
-				}
-			}
-
-			@Override
-			public void onFailure (Call <RegistrationResponse> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
-				handleFailure(t.getLocalizedMessage());
-			}
-		};
-		call.enqueue(callback);
-	}
-
-	@Override
-	public void login(String login, String password) {
-		Call<LoginResponse> call = getBackendAPIClient().login(new LoginBody(login, password));
+	public void login(String cityUrl, String login, String password, String deviceId) {
+		Call<LoginResponse> call = getBackendAPIClient(cityUrl).login(new LoginRequestBody(login, password, deviceId));
 		Callback<LoginResponse> callback = new Callback<LoginResponse>() {
 			@Override
 			public void onResponse (Call<LoginResponse> call, Response<LoginResponse> response){
 				if (response.isSuccessful()) {
-					Log.d(LOG_TAG, "retrofit response isSuccessful");
+					Log.d(LOG_TAG, "retrofit login response isSuccessful");
+					view.processLoginSuccess(response.body().getToken());
 				} else {
+					view.processLoginFail();
 					handleError(response.code(), response.errorBody());
 				}
 			}
-
+			
 			@Override
 			public void onFailure (Call <LoginResponse> call, Throwable t){
 				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
+				view.processLoginFail();
 				handleFailure(t.getLocalizedMessage());
 			}
 		};
 		call.enqueue(callback);
 	}
-
+	
 	@Override
-	public void getMenu(String locale, String city) {
-		Call<MenuResponse> call = getBackendAPIClient().getMenu(locale, city);
-		Callback<MenuResponse> callback = new Callback<MenuResponse>() {
+	public void getOrders(String cityUrl, String token, List<Geo> geos) {
+		Call<OrdersResponse> call = getBackendAPIClient(cityUrl).getOrders(token, new OrdersRequestBody(geos));
+		Callback<OrdersResponse> callback = new Callback<OrdersResponse>() {
 			@Override
-			public void onResponse (Call<MenuResponse> call, Response<MenuResponse> response){
+			public void onResponse (Call<OrdersResponse> call, Response<OrdersResponse> response){
 				if (response.isSuccessful()) {
 					Log.d(LOG_TAG, "getMenu retrofit response isSuccessful");
-					view.processNewMenu(response.body().menuData.menuCategoriesList);
+					view.processOrders(response.body().getOrders());
 				} else {
 					handleError(response.code(), response.errorBody());
 				}
 			}
-
+			
 			@Override
-			public void onFailure (Call <MenuResponse> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
-				handleFailure(t.getLocalizedMessage());
-			}
-		};
-		call.enqueue(callback);
-	}
-
-	@Override
-	public void getMenuCategoryDetails(String locale, String city, int menuId) {
-		Call<MenuCategoryDetailsResponse> call = getBackendAPIClient().getMenuCategoryDetails(locale, city);
-		Callback<MenuCategoryDetailsResponse> callback = new Callback<MenuCategoryDetailsResponse>() {
-			@Override
-			public void onResponse (Call<MenuCategoryDetailsResponse> call, Response<MenuCategoryDetailsResponse> response){
-				if (response.isSuccessful()) {
-					Log.d(LOG_TAG, "getMenu retrofit response isSuccessful");
-					view.processNewProductsList(response.body().menuCategoryDetailsData.product, menuId);
-				} else {
-					handleError(response.code(), response.errorBody());
-				}
-			}
-
-			@Override
-			public void onFailure (Call <MenuCategoryDetailsResponse> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
-				handleFailure(t.getLocalizedMessage());
-			}
-		};
-		call.enqueue(callback);
-	}
-
-	@Override
-	public void getImage(String filename, int width, int height) {
-		Call<ImageResponse> call = getBackendAPIClient().getImage(filename, width, height);
-		Callback<ImageResponse> callback = new Callback<ImageResponse>() {
-			@Override
-			public void onResponse (Call<ImageResponse> call, Response<ImageResponse> response){
-				if (response.isSuccessful()) {
-					Log.d(LOG_TAG, "getImage retrofit response isSuccessful");
-//					view.processNewMenu(response.body().menuData.menuCategoriesList);
-				} else {
-					handleError(response.code(), response.errorBody());
-				}
-			}
-
-			@Override
-			public void onFailure (Call <ImageResponse> call, Throwable t){
+			public void onFailure (Call <OrdersResponse> call, Throwable t){
 				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}
@@ -176,10 +113,11 @@ public class RESTClientImpl implements RESTClient {
 	}
 
 
-	private BackendAPI getBackendAPIClient() {
+	private BackendAPI getBackendAPIClient(String baseUrl) {
+		Gson gson = new GsonBuilder().setDateFormat(AppUtils.DATE_FORMAT).create();
 		Retrofit retrofit = new Retrofit.Builder()
-				.baseUrl(BackendAPI.SW_API_BASE_URL)
-				.addConverterFactory(GsonConverterFactory.create())
+				.baseUrl(baseUrl)
+				.addConverterFactory(GsonConverterFactory.create(gson))
 				.client(getClient())
 				.build();
 		return retrofit.create(BackendAPI.class);
@@ -221,8 +159,11 @@ public class RESTClientImpl implements RESTClient {
 			case ErrorConstants.BAD_REQUEST:
 				logMsg += " Check request Json";
 				break;
+			case ErrorConstants.ANAUTHORIZED:
+				logMsg += " unauthorized. check token";
+				break;
 			case ErrorConstants.NOT_FOUND:
-				logMsg += " No such user";
+				logMsg += " Not found";
 				break;
 			case ErrorConstants.PHONE_CODE_INVALID:
 				logMsg += " Invalid sms confirmation code";

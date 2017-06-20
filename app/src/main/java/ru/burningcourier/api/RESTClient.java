@@ -1,12 +1,11 @@
 package ru.burningcourier.api;
 
+import java.util.List;
+import ru.burningcourier.api.model.Geo;
+
 public interface RESTClient {
 
-	void validatePhone(String phone);
-	void registerNewUser(String phone, String password, int smsValidationCode, String name, String birthday,
-                         String sex, String email, String socialProvider, String socialId);
-	void login(String login, String password);
-	void getMenu(String locale, String city);
-	void getMenuCategoryDetails(String locale, String city, int menuId);
-	void getImage(String filename, int width, int height);
+	void getCitiesList();
+	void login(String cityUrl, String login, String password, String deviceId);
+	void getOrders(String cityUrl, String token, List<Geo> geos);
 }
