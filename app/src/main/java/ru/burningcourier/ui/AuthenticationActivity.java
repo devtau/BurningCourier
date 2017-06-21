@@ -11,6 +11,8 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 import java.util.List;
 import ru.burningcourier.BCApplication;
 import ru.burningcourier.R;
@@ -152,7 +154,7 @@ public class AuthenticationActivity extends GeoListenerActivity {
         public void processOrders(List<Order> orders) {
             showToast("processOrders orders size = " + orders.size());
             //TODO: вернуть
-//            BCApplication.orders = (ArrayList<Order>) orders;
+            BCApplication.orders = (ArrayList<Order>) orders;
             ProgressDialogFragment.dismissProgress(progress);
             startActivity(new Intent(AuthenticationActivity.this, OrdersListActivity.class));
             finish();

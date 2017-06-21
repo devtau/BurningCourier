@@ -15,8 +15,10 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import ru.burningcourier.BCApplication;
@@ -100,14 +102,18 @@ public class OrderActivity extends GeoListenerActivity {
     
     private void initUI() {
         nextStatus = (TextView) findViewById(R.id.nextStatus);
-        nextStatus.setOnClickListener(v -> {
+        findViewById(R.id.nextStatusContainer).setOnClickListener(v -> {
             if (!order.isDelivered) {
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.adb_title)
                         .setMessage(R.string.adb_msg)
                         .setPositiveButton(R.string.adb_yes, (dialog, which) -> {
-                            String login = PreferencesManager.getInstance(this).getLogin();
-//                            restClient.changeOrderStatus();
+                            String savedCityName = PreferencesManager.getInstance(OrderActivity.this).getCurrentCity();
+                            String cityUrl = City.getUrlByName(savedCityName);
+                            if (!TextUtils.isEmpty(cityUrl)) {
+                                restClient.changeStatus(cityUrl, BCApplication.token, order.orderId, order.nextStatus, geoService.getGeoList());
+                                finish();
+                            }
                         })
                         .setNegativeButton(R.string.adb_no, null)
                         .show();
@@ -121,6 +127,7 @@ public class OrderActivity extends GeoListenerActivity {
         ((TextView) findViewById(R.id.toolbarOrderTitle)).setText(String.valueOf(order.orderId));
         toolbar = (Toolbar) findViewById(R.id.toolbarOrder);
         orderTimer = (TextView) findViewById(R.id.orderTimer);
+        findViewById(R.id.onlinePayment).setVisibility(order.isCash ? View.GONE : View.VISIBLE);
         updateTimer();
         initToolbar();
     }
@@ -177,6 +184,7 @@ public class OrderActivity extends GeoListenerActivity {
         @Override
         public void processOrders(List<Order> orders) {
             showToast("processOrders orders size = " + orders.size());
+            BCApplication.orders = (ArrayList<Order>) orders;
         }
     
         @Override

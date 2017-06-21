@@ -24,7 +24,6 @@ import ru.burningcourier.api.response.CitiesListResponse;
 import ru.burningcourier.api.response.LoginResponse;
 import ru.burningcourier.api.response.OrdersResponse;
 import ru.burningcourier.utils.AppUtils;
-
 /**
  * library authors page: http://square.github.io/retrofit/
  */
@@ -98,7 +97,7 @@ public class RESTClientImpl implements RESTClient {
 			@Override
 			public void onResponse (Call<OrdersResponse> call, Response<OrdersResponse> response){
 				if (response.isSuccessful()) {
-					Log.d(LOG_TAG, "getMenu retrofit response isSuccessful");
+					Log.d(LOG_TAG, "retrofit getOrders response isSuccessful");
 					view.processOrders(response.body().getOrders());
 				} else {
 					handleError(response.code(), response.errorBody());
@@ -121,7 +120,7 @@ public class RESTClientImpl implements RESTClient {
 			@Override
 			public void onResponse (Call<ChangeStatusResponse> call, Response<ChangeStatusResponse> response){
 				if (response.isSuccessful()) {
-					Log.d(LOG_TAG, "getMenu retrofit response isSuccessful");
+					Log.d(LOG_TAG, "retrofit changeStatus response isSuccessful");
 					view.processOrderStatusChanged(response.body().getTracking());
 				} else {
 					handleError(response.code(), response.errorBody());

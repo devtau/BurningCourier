@@ -3,66 +3,146 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/colorWhite"
     android:orientation="vertical"
-    android:padding="@dimen/margin_normal"
+    android:paddingLeft="40dp"
+    android:paddingRight="40dp"
     android:gravity="center_horizontal"
     tools:context="ru.burningcourier.ui.AuthenticationActivity">
 
-    <ImageView
-        android:src="@drawable/logo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_normal"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.v4.widget.Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"/>
+        <ImageView
+            android:src="@drawable/logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_normal"/>
+
+        <android.support.v4.widget.Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="5"/>
+    </LinearLayout>
 
     <TextView
         android:text="@string/app_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_normal"
-        android:textColor="@color/colorPrimary"
+        android:textColor="@color/colorAccent"
         android:textStyle="bold"
-        android:textSize="18sp"/>
+        android:textSize="18sp"
+        android:textAllCaps="true"/>
 
-    <Spinner
-        android:id="@+id/citiesSpinner"
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_normal"
-        android:theme="@style/CustomSpinner"/>
+        android:gravity="bottom">
 
+        <ImageView
+            android:src="@drawable/city"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"/>
 
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_normal">
-
-        <EditText
-            android:id="@+id/login"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="phone"
-            android:hint="@string/login"
-            android:textSize="18sp"
-            android:theme="@style/CustomEditText"/>
-    </android.support.design.widget.TextInputLayout>
+            android:orientation="vertical">
+
+            <Spinner
+                android:id="@+id/citiesSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:theme="@style/CustomSpinner"/>
+        </LinearLayout>
+    </LinearLayout>
 
 
-    <android.support.design.widget.TextInputLayout
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/colorGray196"/>
+
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_normal">
+        android:layout_marginTop="@dimen/margin_normal"
+        android:gravity="bottom">
 
-        <EditText
-            android:id="@+id/password"
-            android:text="1111"
-            android:layout_width="match_parent"
+        <ImageView
+            android:src="@drawable/phone"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="numberPassword"
-            android:hint="@string/password"
-            android:textSize="18sp"
-            android:theme="@style/CustomEditText"/>/>
-    </android.support.design.widget.TextInputLayout>
+            android:layout_marginBottom="10dp"
+            android:layout_marginRight="10dp"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="phone"
+                android:hint="@string/login"
+                android:textSize="18sp"
+                android:theme="@style/CustomEditText"/>
+        </android.support.design.widget.TextInputLayout>
+    </LinearLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/colorGray196"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:gravity="bottom">
+
+        <ImageView
+            android:src="@drawable/password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginRight="10dp"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/password"
+                android:text="1111"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberPassword"
+                android:hint="@string/password"
+                android:textSize="18sp"
+                android:theme="@style/CustomEditText"/>/>
+        </android.support.design.widget.TextInputLayout>
+    </LinearLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:background="@color/colorGray196"/>
 
     <!--<TextView-->
         <!--android:text="@string/authorization"-->
@@ -103,13 +183,25 @@
         <!--android:inputType="numberPassword"-->
         <!--android:textSize="15sp"/>-->
 
-    <Button
-        android:text="@string/enter"
+    <android.support.v7.widget.CardView
         android:id="@+id/authButton"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="50dp"
         android:layout_marginTop="@dimen/margin_normal"
-        android:textColor="@color/colorWhite"
-        android:textSize="18sp"
-        style="@style/Widget.AppCompat.Button.Colored"/>
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardBackgroundColor="@color/colorAccent"
+        app:cardCornerRadius="25dp">
+
+        <TextView
+            android:text="@string/enter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textColor="@color/colorWhite"
+            android:textSize="18sp"
+            android:textAllCaps="true"
+            android:textStyle="bold"/>
+    </android.support.v7.widget.CardView>
 </LinearLayout>

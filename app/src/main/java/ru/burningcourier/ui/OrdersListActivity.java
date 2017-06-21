@@ -15,6 +15,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 import java.util.List;
 import ru.burningcourier.BCApplication;
 import ru.burningcourier.R;
@@ -140,7 +142,7 @@ public class OrdersListActivity extends GeoListenerActivity {
         public void processOrders(List<Order> orders) {
             showToast("processOrders orders size = " + orders.size());
             //TODO: вернуть
-//            BCApplication.orders = (ArrayList<Order>) orders;
+            BCApplication.orders = (ArrayList<Order>) orders;
             adapter.notifyDataSetChanged();
             ProgressDialogFragment.dismissProgress(progress);
         }

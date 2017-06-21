@@ -32,8 +32,8 @@ public class Order implements Parcelable {
     @SerializedName("lon")
     public double addressLon;
     
-    @SerializedName("payment_type")
-    public String paymentType;
+    @SerializedName("isCash")
+    public boolean isCash;
     
     @SerializedName("note")
     public String note;
@@ -42,10 +42,10 @@ public class Order implements Parcelable {
     public String type;
     
     @SerializedName("curr_status")
-    public String currStatus;
+    public int currStatus;
     
     @SerializedName("next_status")
-    public String nextStatus;
+    public int nextStatus;
     
     public boolean isDelivered;
     public boolean selected;
@@ -56,7 +56,6 @@ public class Order implements Parcelable {
     private static final String ORDER = "order";
     private static final String DATE = "date";
     private static final String ADDRESS = "address";
-    private static final String PHONE = "phone";
     private static final String LAT = "lat";
     private static final String LON = "lon";
     private static final String PAYMENT_TYPE = "payment_type";
@@ -68,16 +67,16 @@ public class Order implements Parcelable {
     
     public Order(JSONObject jsonObject) throws JSONException {
         //[{"order":8819818,"date":"13.06.2017 16:48:20","address":"Санкт-Петербург,Маршала Блюхера,47,53","phone":"89626920375"}]
-        orderId = jsonObject.getString(Order.ORDER);
-        date = AppUtils.formatDate(jsonObject.getString(Order.DATE));
-        address = jsonObject.getString(Order.ADDRESS);
-        addressLat = jsonObject.getDouble(Order.LAT);
-        addressLon = jsonObject.getDouble(Order.LON);
-        paymentType = jsonObject.getString(Order.PAYMENT_TYPE);
-        note = jsonObject.getString(Order.NOTE);
-        type = jsonObject.getString(Order.TYPE);
-        currStatus = jsonObject.getString(Order.CURR_STATUS);
-        nextStatus = jsonObject.getString(Order.NEXT_STATUS);
+        orderId = jsonObject.getString(ORDER);
+        date = AppUtils.formatDate(jsonObject.getString(DATE));
+        address = jsonObject.getString(ADDRESS);
+        addressLat = jsonObject.getDouble(LAT);
+        addressLon = jsonObject.getDouble(LON);
+        isCash = jsonObject.getInt(PAYMENT_TYPE) == 1;
+        note = jsonObject.getString(NOTE);
+        type = jsonObject.getString(TYPE);
+        currStatus = jsonObject.getInt(CURR_STATUS);
+        nextStatus = jsonObject.getInt(NEXT_STATUS);
         
         isDelivered = false;
         timeLeft = date.getTime() - System.currentTimeMillis();
@@ -103,11 +102,11 @@ public class Order implements Parcelable {
         address = in.readString();
         addressLat = in.readDouble();
         addressLon = in.readDouble();
-        paymentType = in.readString();
+        isCash = in.readInt() == 1;
         note = in.readString();
         type = in.readString();
-        currStatus = in.readString();
-        nextStatus = in.readString();
+        currStatus = in.readInt();
+        nextStatus = in.readInt();
         isDelivered = in.readInt() == 1;
         selected = in.readInt() == 1;
         timeLeft = in.readLong();
@@ -121,7 +120,7 @@ public class Order implements Parcelable {
                 + ", address = " + address
                 + ", addressLat = " + addressLat
                 + ", addressLon = " + addressLon
-                + ", paymentType = " + paymentType
+                + ", isCash = " + isCash
                 + ", note = " + note
                 + ", type = " + type
                 + ", currStatus = " + currStatus
@@ -143,11 +142,11 @@ public class Order implements Parcelable {
         dest.writeString(address);
         dest.writeDouble(addressLat);
         dest.writeDouble(addressLon);
-        dest.writeString(paymentType);
+        dest.writeInt(isCash ? 1 : 0);
         dest.writeString(note);
         dest.writeString(type);
-        dest.writeString(currStatus);
-        dest.writeString(nextStatus);
+        dest.writeInt(currStatus);
+        dest.writeInt(nextStatus);
         dest.writeInt(isDelivered ? 1 : 0);
         dest.writeInt(selected ? 1 : 0);
         dest.writeLong(timeLeft);
@@ -164,17 +163,16 @@ public class Order implements Parcelable {
     
     public static ArrayList<Order> getMockOrders() {
         ArrayList<Order> orders = new ArrayList<>();
-        SimpleDateFormat dayFormatter = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
-        String date = dayFormatter.format(new Date(System.currentTimeMillis()));
-        orders.add(new Order("SW-977-666-245-064", AppUtils.formatDate(date + " 12:10:00"), "Санкт-Петербург, Шаумяна, 27-12",
-                "встретить у подъезда, домофон 125", true, 59.931772, 30.415403));
-        orders.add(new Order("SW-977-666-245-065", AppUtils.formatDate(date + " 13:30:00"), "Санкт-Петербург, Энергетиков, 9-1-20",
+        String date = "20170621";
+        orders.add(new Order("SW-977-666-245-064", AppUtils.formatDate(date + "060000"), "Санкт-Петербург, Шаумяна, 27-12",
+                "встретить у подъезда, домофон 125", false, 59.931772, 30.415403));
+        orders.add(new Order("SW-977-666-245-065", AppUtils.formatDate(date + "080000"), "Санкт-Петербург, Энергетиков, 9-1-20",
                 "", false, 59.937870, 30.435815));
-        orders.add(new Order("SW-977-666-245-066", AppUtils.formatDate(date + " 13:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-066", AppUtils.formatDate(date + "194300"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "не звонить. все равно не открою", false, 59.945026, 30.414169));
-        orders.add(new Order("SW-977-666-245-067", AppUtils.formatDate(date + " 19:15:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-067", AppUtils.formatDate(date + "204000"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "попрыгать на месте перед собакой", false, 59.945026, 30.414169));
-        orders.add(new Order("SW-977-666-245-068", AppUtils.formatDate(date + " 19:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-068", AppUtils.formatDate(date + "235000"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "кидать камни в окно пока не открою", false, 59.945026, 30.414169));
         return orders;
     }

@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import ru.burningcourier.api.model.Order;
 import ru.burningcourier.R;
 
@@ -16,6 +17,7 @@ public class AppUtils {
     
     private static final long RED_TIME = 15 * 60_000;
     private static final long HOUR = 60 * 60_000;
+    public static final long DAY = HOUR * 24;
     public static final long SESSION_TIME = HOUR * 8;
     public static final String DATE_FORMAT = "yyyyMMddHHmmss";
     public static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
@@ -24,46 +26,40 @@ public class AppUtils {
     
     public static Date formatDate(String dateString) {
         Date date = null;
-        SimpleDateFormat formatter;
-        formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss", Locale.getDefault());
         try {
-            date = formatter.parse(dateString);
+            date = DATE_FORMATTER.parse(dateString);
         } catch (ParseException e) {
-            Log.d(LOG_TAG, e.getMessage());
-            e.printStackTrace();
+            Log.e(LOG_TAG, e.getMessage());
         }
         return date;
     }
     
     public static String formatTimer(Order order) {
-        String timerFormatted = null;
+        int timeZoneOffset = TimeZone.getDefault().getOffset(System.currentTimeMillis());
         if (order.isDelivered) {
-            timerFormatted = "Заказ доставлен";
-        } else {
-            SimpleDateFormat formatter;
-            if (order.timeLeft > 0) {
-                try {
-                    if (order.timeLeft < HOUR) {
-                        formatter = new SimpleDateFormat("00:mm:ss", Locale.getDefault());
-                    } else {
-                        formatter = new SimpleDateFormat("hh:mm", Locale.getDefault());
-                    }
-                    timerFormatted = formatter.format(new Date(order.timeLeft));
-                } catch (Error e) {
-                    Log.d(LOG_TAG, e.getMessage());
-                    e.printStackTrace();
-                }
-            } else {
-                formatter = new SimpleDateFormat("-00:mm:ss", Locale.getDefault());
-                timerFormatted = formatter.format(new Date(order.timeLeft));
-            }
+            return "Заказ доставлен";
         }
-        return timerFormatted;
+    
+        if (order.timeLeft < -DAY) {
+            return String.valueOf((int) (order.timeLeft / HOUR)) + " ч";
+        }
+    
+        if (order.timeLeft < 0) {
+            SimpleDateFormat formatter = new SimpleDateFormat("-H:mm:ss", Locale.getDefault());
+            return formatter.format(new Date(order.timeLeft * (-1) - timeZoneOffset));
+        }
+        
+        if (order.timeLeft > 0) {
+            boolean lessThanHourLeft = order.timeLeft < HOUR;
+            SimpleDateFormat formatter = new SimpleDateFormat(lessThanHourLeft ? "mm:ss" : "H:mm:ss", Locale.getDefault());
+            return formatter.format(new Date(order.timeLeft));
+        }
+        return "";
     }
     
     public static int processTimerColor(Order order, Context context) {
         boolean isOrderInRedZone = order.timeLeft <= RED_TIME && !order.isDelivered;
-        int timerTextColorId = isOrderInRedZone ? R.color.colorRed : R.color.colorGray111;
+        int timerTextColorId = isOrderInRedZone ? R.color.colorRed : R.color.colorGray74;
         return ContextCompat.getColor(context, timerTextColorId);
     }
     
