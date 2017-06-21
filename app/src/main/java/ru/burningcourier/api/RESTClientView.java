@@ -9,5 +9,6 @@ public interface RESTClientView {
 	void processLoginSuccess(String token);
 	void processLoginFail();
 	void processOrders(List<Order> menuCategoriesList);
+	void processOrderStatusChanged(int tracking);
 	void showToast(String msg);
 }

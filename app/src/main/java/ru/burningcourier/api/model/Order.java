@@ -6,8 +6,10 @@ import android.util.Log;
 import com.google.gson.annotations.SerializedName;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import ru.burningcourier.utils.AppUtils;
 
 public class Order implements Parcelable {
@@ -45,9 +47,9 @@ public class Order implements Parcelable {
     @SerializedName("next_status")
     public String nextStatus;
     
-    public boolean delivered;
+    public boolean isDelivered;
     public boolean selected;
-    public long timer;
+    public long timeLeft;
     
     
     //JSON fields
@@ -77,19 +79,19 @@ public class Order implements Parcelable {
         currStatus = jsonObject.getString(Order.CURR_STATUS);
         nextStatus = jsonObject.getString(Order.NEXT_STATUS);
         
-        delivered = false;
-        timer = date.getTime() - System.currentTimeMillis();
+        isDelivered = false;
+        timeLeft = date.getTime() - System.currentTimeMillis();
         Log.d(LOG_TAG, "created new Order: " + this);
     }
     
     //используется только для мока
-    private Order(String orderId, Date date, String address, String note, boolean delivered, double lat, double lon) {
+    private Order(String orderId, Date date, String address, String note, boolean isDelivered, double lat, double lon) {
         this.orderId = orderId;
         this.date = date;
         this.address = address;
         this.note = note;
-        this.delivered = delivered;
-        timer = date.getTime() - System.currentTimeMillis();
+        this.isDelivered = isDelivered;
+        timeLeft = date.getTime() - System.currentTimeMillis();
         this.addressLat = lat;
         this.addressLon = lon;
         Log.d(LOG_TAG, "created new Order: " + this);
@@ -106,9 +108,9 @@ public class Order implements Parcelable {
         type = in.readString();
         currStatus = in.readString();
         nextStatus = in.readString();
-        delivered = in.readInt() == 1;
+        isDelivered = in.readInt() == 1;
         selected = in.readInt() == 1;
-        timer = in.readLong();
+        timeLeft = in.readLong();
     }
     
     
@@ -124,9 +126,9 @@ public class Order implements Parcelable {
                 + ", type = " + type
                 + ", currStatus = " + currStatus
                 + ", nextStatus = " + nextStatus
-                + ", delivered = " + delivered
+                + ", isDelivered = " + isDelivered
                 + ", selected = " + selected
-                + ", timer = " + timer;
+                + ", timeLeft = " + timeLeft;
     }
     
     @Override
@@ -146,9 +148,9 @@ public class Order implements Parcelable {
         dest.writeString(type);
         dest.writeString(currStatus);
         dest.writeString(nextStatus);
-        dest.writeInt(delivered ? 1 : 0);
+        dest.writeInt(isDelivered ? 1 : 0);
         dest.writeInt(selected ? 1 : 0);
-        dest.writeLong(timer);
+        dest.writeLong(timeLeft);
     }
     
     public static final Parcelable.Creator<Order> CREATOR = new Parcelable.Creator<Order>() {
@@ -162,15 +164,17 @@ public class Order implements Parcelable {
     
     public static ArrayList<Order> getMockOrders() {
         ArrayList<Order> orders = new ArrayList<>();
-        orders.add(new Order("SW-977-666-245-064", AppUtils.formatDate("20.06.2017 10:10:00"), "Санкт-Петербург, Шаумяна, 27-12",
-                "встретить у подъезда, домофон 125", false, 59.931772, 30.415403));
-        orders.add(new Order("SW-977-666-245-065", AppUtils.formatDate("20.06.2017 11:30:00"), "Санкт-Петербург, Энергетиков, 9-1-20",
+        SimpleDateFormat dayFormatter = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+        String date = dayFormatter.format(new Date(System.currentTimeMillis()));
+        orders.add(new Order("SW-977-666-245-064", AppUtils.formatDate(date + " 12:10:00"), "Санкт-Петербург, Шаумяна, 27-12",
+                "встретить у подъезда, домофон 125", true, 59.931772, 30.415403));
+        orders.add(new Order("SW-977-666-245-065", AppUtils.formatDate(date + " 13:30:00"), "Санкт-Петербург, Энергетиков, 9-1-20",
                 "", false, 59.937870, 30.435815));
-        orders.add(new Order("SW-977-666-245-066", AppUtils.formatDate("20.06.2017 13:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-066", AppUtils.formatDate(date + " 13:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "не звонить. все равно не открою", false, 59.945026, 30.414169));
-        orders.add(new Order("SW-977-666-245-067", AppUtils.formatDate("20.06.2017 19:15:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-067", AppUtils.formatDate(date + " 19:15:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "попрыгать на месте перед собакой", false, 59.945026, 30.414169));
-        orders.add(new Order("SW-977-666-245-068", AppUtils.formatDate("20.06.2017 19:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
+        orders.add(new Order("SW-977-666-245-068", AppUtils.formatDate(date + " 19:45:18"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
                 "кидать камни в окно пока не открою", false, 59.945026, 30.414169));
         return orders;
     }

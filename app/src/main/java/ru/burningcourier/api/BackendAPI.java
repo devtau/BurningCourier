@@ -5,13 +5,15 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import ru.burningcourier.api.requestBody.ChangeStatusRequestBody;
 import ru.burningcourier.api.requestBody.LoginRequestBody;
 import ru.burningcourier.api.requestBody.OrdersRequestBody;
+import ru.burningcourier.api.response.ChangeStatusResponse;
 import ru.burningcourier.api.response.CitiesListResponse;
 import ru.burningcourier.api.response.LoginResponse;
 import ru.burningcourier.api.response.OrdersResponse;
 
-public interface BackendAPI {
+interface BackendAPI {
 	
 //	адрес сервера до 01.06.17: 93.92.194.154
 	String BC_API_BASE_URL = "http://91.190.82.49/";
@@ -20,14 +22,18 @@ public interface BackendAPI {
 	String CITIES_LIST_ENDPOINT = SUFFIX + "/config";
 	String LOGIN_ENDPOINT = SUFFIX + "/auth";
 	String ORDERS_ENDPOINT = SUFFIX + "/orders";
+	String CHANGE_STATUS_ENDPOINT = SUFFIX + "/changestatus";
 	
 	
 	@GET(CITIES_LIST_ENDPOINT)
 	Call<CitiesListResponse> getCitiesList();
 	
 	@POST(LOGIN_ENDPOINT)
-	Call<LoginResponse> login(@Body LoginRequestBody loginRequestBody);
+	Call<LoginResponse> login(@Body LoginRequestBody requestBody);
 	
 	@POST(ORDERS_ENDPOINT)
-	Call<OrdersResponse> getOrders(@Header("Authorization") String token, @Body OrdersRequestBody ordersRequestBody);
+	Call<OrdersResponse> getOrders(@Header("Authorization") String token, @Body OrdersRequestBody requestBody);
+	
+	@POST(CHANGE_STATUS_ENDPOINT)
+	Call<ChangeStatusResponse> changeStatus(@Header("Authorization") String token, @Body ChangeStatusRequestBody requestBody);
 }

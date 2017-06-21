@@ -16,8 +16,10 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import ru.burningcourier.api.model.Geo;
+import ru.burningcourier.api.requestBody.ChangeStatusRequestBody;
 import ru.burningcourier.api.requestBody.LoginRequestBody;
 import ru.burningcourier.api.requestBody.OrdersRequestBody;
+import ru.burningcourier.api.response.ChangeStatusResponse;
 import ru.burningcourier.api.response.CitiesListResponse;
 import ru.burningcourier.api.response.LoginResponse;
 import ru.burningcourier.api.response.OrdersResponse;
@@ -105,6 +107,29 @@ public class RESTClientImpl implements RESTClient {
 			
 			@Override
 			public void onFailure (Call <OrdersResponse> call, Throwable t){
+				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
+				handleFailure(t.getLocalizedMessage());
+			}
+		};
+		call.enqueue(callback);
+	}
+	
+	@Override
+	public void changeStatus(String cityUrl, String token, String orderId, int newStatusId, List<Geo> geos) {
+		Call<ChangeStatusResponse> call = getBackendAPIClient(cityUrl).changeStatus(token, new ChangeStatusRequestBody(orderId, newStatusId, geos));
+		Callback<ChangeStatusResponse> callback = new Callback<ChangeStatusResponse>() {
+			@Override
+			public void onResponse (Call<ChangeStatusResponse> call, Response<ChangeStatusResponse> response){
+				if (response.isSuccessful()) {
+					Log.d(LOG_TAG, "getMenu retrofit response isSuccessful");
+					view.processOrderStatusChanged(response.body().getTracking());
+				} else {
+					handleError(response.code(), response.errorBody());
+				}
+			}
+			
+			@Override
+			public void onFailure (Call <ChangeStatusResponse> call, Throwable t){
 				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}

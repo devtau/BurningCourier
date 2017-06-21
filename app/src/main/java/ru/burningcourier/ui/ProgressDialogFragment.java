@@ -52,6 +52,12 @@ public class ProgressDialogFragment extends DialogFragment {
         this.message = message;
     }
     
+    public static void dismissProgress(ProgressDialogFragment instance) {
+        if (instance != null && instance.isAdded()) {
+            instance.dismiss();
+        }
+    }
+    
     
     
     public interface AuthCancellerListener {

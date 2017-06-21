@@ -1,14 +1,15 @@
 package ru.burningcourier.ui;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -18,21 +19,24 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.util.List;
 import java.util.Locale;
+import ru.burningcourier.BCApplication;
 import ru.burningcourier.api.model.Order;
 import ru.burningcourier.R;
 import ru.burningcourier.api.RESTClient;
 import ru.burningcourier.api.RESTClientImpl;
 import ru.burningcourier.api.RESTClientView;
 import ru.burningcourier.api.model.City;
+import ru.burningcourier.service.TimerService;
 import ru.burningcourier.utils.AppUtils;
 import ru.burningcourier.utils.PreferencesManager;
 
-public class OrderActivity extends AppCompatActivity {
+public class OrderActivity extends GeoListenerActivity {
     
     private static final String ORDER_EXTRA = "ORDER_EXTRA";
     private final static String LOG_TAG = "OrderActivity";
     private Order order;
     private RESTClient restClient;
+    private BroadcastReceiver timeTickReceiver;
     private Toolbar toolbar;
     private TextView orderTimer;
     private TextView nextStatus;
@@ -51,6 +55,14 @@ public class OrderActivity extends AppCompatActivity {
         order = getIntent().getParcelableExtra(ORDER_EXTRA);
         initUI();
         restClient = new RESTClientImpl(new RESTClientViewImpl());
+        
+        timeTickReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                updateTimer();
+            }
+        };
+        startService(new Intent(OrderActivity.this, TimerService.class));
     }
     
     @Override
@@ -74,10 +86,22 @@ public class OrderActivity extends AppCompatActivity {
         }
     }
     
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(timeTickReceiver);
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(timeTickReceiver, new IntentFilter(TimerService.TIME_TICK));
+    }
+    
     private void initUI() {
         nextStatus = (TextView) findViewById(R.id.nextStatus);
         nextStatus.setOnClickListener(v -> {
-            if (!order.delivered) {
+            if (!order.isDelivered) {
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.adb_title)
                         .setMessage(R.string.adb_msg)
@@ -97,9 +121,16 @@ public class OrderActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.toolbarOrderTitle)).setText(String.valueOf(order.orderId));
         toolbar = (Toolbar) findViewById(R.id.toolbarOrder);
         orderTimer = (TextView) findViewById(R.id.orderTimer);
+        updateTimer();
+        initToolbar();
+    }
+    
+    private void updateTimer() {
+        BCApplication.orders.stream()
+                .filter(storedOrder -> storedOrder.orderId.equals(this.order.orderId))
+                .forEach(storedOrder -> this.order = storedOrder);
         orderTimer.setText(AppUtils.formatTimer(order));
         orderTimer.setTextColor(AppUtils.processTimerColor(order, this));
-        initToolbar();
     }
     
     private void initToolbar() {
@@ -148,10 +179,14 @@ public class OrderActivity extends AppCompatActivity {
             showToast("processOrders orders size = " + orders.size());
         }
     
-//        @Override
-//        public void processOrderStatusChanged() {
-//            restClient.getOrders(SFApplication.cities.get(0).getUrl(), SFApplication.token);
-//        }
+        @Override
+        public void processOrderStatusChanged(int tracking) {
+            String savedCityName = PreferencesManager.getInstance(OrderActivity.this).getCurrentCity();
+            String cityUrl = City.getUrlByName(savedCityName);
+            if (!TextUtils.isEmpty(cityUrl)) {
+                restClient.getOrders(cityUrl, BCApplication.token, geoService.getGeoList());
+            }
+        }
     
         @Override
         public void showToast(String msg) {

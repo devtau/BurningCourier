@@ -2,7 +2,7 @@ package ru.burningcourier.api.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import ru.burningcourier.sfClasses.SFApplication;
+import ru.burningcourier.BCApplication;
 
 public class City {
 
@@ -28,7 +28,7 @@ public class City {
 	}
 	
 	public static String getUrlByName(String name) {
-		for (City city : SFApplication.cities) {
+		for (City city : BCApplication.cities) {
 			if (city.getName().equals(name)) {
 				return city.getUrl();
 			}
