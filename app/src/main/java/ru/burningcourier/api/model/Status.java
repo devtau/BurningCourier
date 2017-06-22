@@ -5,10 +5,19 @@ import com.google.gson.annotations.SerializedName;
 public class Status {
 
 	@SerializedName("id")
-	private String id;
+	private int id;
 
 	@SerializedName("text_id")
 	private String textId;
+	
+	
+	public int getId() {
+		return id;
+	}
+	
+	public String getTextId() {
+		return textId;
+	}
 	
 	
 	@Override

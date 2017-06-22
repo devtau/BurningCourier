@@ -6,10 +6,8 @@ import android.util.Log;
 import com.google.gson.annotations.SerializedName;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Locale;
 import ru.burningcourier.utils.AppUtils;
 
 public class Order implements Parcelable {
@@ -61,6 +59,8 @@ public class Order implements Parcelable {
     private static final String PAYMENT_TYPE = "payment_type";
     private static final String NOTE = "note";
     private static final String TYPE = "type";
+    public static final String TYPE_BAMPSI = "bampsi";
+    public static final String TYPE_SAKURA = "sakura";
     private static final String CURR_STATUS = "curr_status";
     private static final String NEXT_STATUS = "next_status";
     
@@ -84,11 +84,14 @@ public class Order implements Parcelable {
     }
     
     //используется только для мока
-    private Order(String orderId, Date date, String address, String note, boolean isDelivered, double lat, double lon) {
+    private Order(String orderId, Date date, String address, String note, String type, int currStatus, int nextStatus, boolean isDelivered, double lat, double lon) {
         this.orderId = orderId;
         this.date = date;
         this.address = address;
         this.note = note;
+        this.type = type;
+        this.currStatus = currStatus;
+        this.nextStatus = nextStatus;
         this.isDelivered = isDelivered;
         timeLeft = date.getTime() - System.currentTimeMillis();
         this.addressLat = lat;
@@ -163,17 +166,17 @@ public class Order implements Parcelable {
     
     public static ArrayList<Order> getMockOrders() {
         ArrayList<Order> orders = new ArrayList<>();
-        String date = "20170621";
+        String date = "20170622";
         orders.add(new Order("SW-977-666-245-064", AppUtils.formatDate(date + "060000"), "Санкт-Петербург, Шаумяна, 27-12",
-                "встретить у подъезда, домофон 125", false, 59.931772, 30.415403));
+                "встретить у подъезда, домофон 125", TYPE_BAMPSI, 4, 5, false, 59.931772, 30.415403));
         orders.add(new Order("SW-977-666-245-065", AppUtils.formatDate(date + "080000"), "Санкт-Петербург, Энергетиков, 9-1-20",
-                "", false, 59.937870, 30.435815));
+                "", TYPE_BAMPSI, 5, 6, false, 59.937870, 30.435815));
         orders.add(new Order("SW-977-666-245-066", AppUtils.formatDate(date + "194300"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
-                "не звонить. все равно не открою", false, 59.945026, 30.414169));
+                "не звонить. все равно не открою", TYPE_BAMPSI, 6, 7, false, 59.945026, 30.414169));
         orders.add(new Order("SW-977-666-245-067", AppUtils.formatDate(date + "204000"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
-                "попрыгать на месте перед собакой", false, 59.945026, 30.414169));
+                "попрыгать на месте перед собакой", TYPE_SAKURA, 0, 0, false, 59.945026, 30.414169));
         orders.add(new Order("SW-977-666-245-068", AppUtils.formatDate(date + "235000"), "Санкт-Петербург, Среднеохтинский, 3-1-78",
-                "кидать камни в окно пока не открою", false, 59.945026, 30.414169));
+                "кидать камни в окно пока не открою", TYPE_SAKURA, 0, 0, false, 59.945026, 30.414169));
         return orders;
     }
 }

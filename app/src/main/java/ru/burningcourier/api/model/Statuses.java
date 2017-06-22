@@ -11,6 +11,16 @@ public class Statuses {
     @SerializedName("sakura")
     private List<Status> sakuraStatuses;
     
+    
+    public List<Status> getBampsiStatuses() {
+        return bampsiStatuses;
+    }
+    
+    public List<Status> getSakuraStatuses() {
+        return sakuraStatuses;
+    }
+    
+    
     @Override
     public String toString() {
         return "bampsiStatuses.size() = " + (bampsiStatuses == null ? "null" : bampsiStatuses.size())

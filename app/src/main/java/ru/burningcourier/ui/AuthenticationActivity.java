@@ -79,28 +79,23 @@ public class AuthenticationActivity extends GeoListenerActivity {
     }
     
     private void login() {
-        if (BCApplication.cities == null || BCApplication.cities.size() == 0) return;
+        if (!AppUtils.checkConnection(this) || BCApplication.cities == null || BCApplication.cities.size() == 0) return;
         if (TextUtils.isEmpty(loginView.getText()) || TextUtils.isEmpty(passwordView.getText())) {
             Toast.makeText(this, getString(R.string.fill_in_all_fields), Toast.LENGTH_SHORT).show();
         } else {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(passwordView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-            
-            if (AppUtils.checkConnection(this)) {
-                progress = new ProgressDialogFragment();
-                progress.setMessage(getString(R.string.authorization));
-                progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
-
-                String savedCityName = PreferencesManager.getInstance(AuthenticationActivity.this).getCurrentCity();
-                String cityUrl = City.getUrlByName(savedCityName);
-                String deviceId = PreferencesManager.getInstance(this).getDeviceId();
-                if (!TextUtils.isEmpty(cityUrl)) {
-                    restClient.login(cityUrl, loginView.getText().toString(), passwordView.getText().toString(), deviceId);
-                } else {
-                    Toast.makeText(this, getString(R.string.choose_city), Toast.LENGTH_SHORT).show();
-                }
+    
+            progress = new ProgressDialogFragment();
+            progress.setMessage(getString(R.string.authorization));
+            progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
+    
+            String deviceId = PreferencesManager.getInstance(this).getDeviceId();
+            City savedCity = City.getCityByName(this);
+            if (savedCity != null) {
+                restClient.login(savedCity.getUrl(), loginView.getText().toString(), passwordView.getText().toString(), deviceId);
             } else {
-                Toast.makeText(this, getString(R.string.no_internet), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.choose_city), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -136,10 +131,9 @@ public class AuthenticationActivity extends GeoListenerActivity {
             if (progress != null && progress.isAdded()) {
                 progress.updateProgressDialogMessage(getString(R.string.receiving_data));
             }
-            String savedCityName = PreferencesManager.getInstance(AuthenticationActivity.this).getCurrentCity();
-            String cityUrl = City.getUrlByName(savedCityName);
-            if (!TextUtils.isEmpty(cityUrl)) {
-                restClient.getOrders(cityUrl, token, geoService.getGeoList());
+            City savedCity = City.getCityByName(AuthenticationActivity.this);
+            if (savedCity != null) {
+                restClient.getOrders(savedCity.getUrl(), token, geoService.getGeoList());
             } else {
                 showToast("выберите город");
             }
@@ -162,16 +156,15 @@ public class AuthenticationActivity extends GeoListenerActivity {
     
         @Override
         public void processOrderStatusChanged(int tracking) {
-            String savedCityName = PreferencesManager.getInstance(AuthenticationActivity.this).getCurrentCity();
-            String cityUrl = City.getUrlByName(savedCityName);
-            if (!TextUtils.isEmpty(cityUrl)) {
-                restClient.getOrders(cityUrl, BCApplication.token, geoService.getGeoList());
+            City savedCity = City.getCityByName(AuthenticationActivity.this);
+            if (savedCity != null) {
+                restClient.getOrders(savedCity.getUrl(), BCApplication.token, geoService.getGeoList());
             }
         }
     
         @Override
         public void showToast(String msg) {
-            Toast.makeText(AuthenticationActivity.this, msg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(AuthenticationActivity.this, msg, Toast.LENGTH_LONG).show();
         }
     }
 }

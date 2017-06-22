@@ -10,7 +10,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import ru.burningcourier.BCApplication;
 import ru.burningcourier.R;
-import ru.burningcourier.OrdersAdapter;
+import ru.burningcourier.adapters.OrdersAdapter;
 import ru.burningcourier.api.RESTClient;
 import ru.burningcourier.api.RESTClientImpl;
 import ru.burningcourier.api.RESTClientView;
@@ -28,12 +27,12 @@ import ru.burningcourier.api.model.City;
 import ru.burningcourier.api.model.Order;
 import ru.burningcourier.service.GeoService;
 import ru.burningcourier.service.TimerService;
-import ru.burningcourier.utils.PreferencesManager;
 
 public class OrdersListActivity extends GeoListenerActivity {
     
     private static final String LOG_TAG = "OrdersListActivity";
     private ProgressDialogFragment progress;
+    private RecyclerView ordersList;
     private OrdersAdapter adapter;
     private RESTClient restClient;
     private BroadcastReceiver timeTickReceiver;
@@ -75,10 +74,9 @@ public class OrdersListActivity extends GeoListenerActivity {
                 progress.setMessage(getString(R.string.receiving_data));
                 progress.show(getSupportFragmentManager(), ProgressDialogFragment.TAG);
                 
-                String savedCityName = PreferencesManager.getInstance(OrdersListActivity.this).getCurrentCity();
-                String cityUrl = City.getUrlByName(savedCityName);
-                if (!TextUtils.isEmpty(cityUrl)) {
-                    restClient.getOrders(cityUrl, BCApplication.token, geoService.getGeoList());
+                City savedCity = City.getCityByName(this);
+                if (savedCity != null) {
+                    restClient.getOrders(savedCity.getUrl(), BCApplication.token, geoService.getGeoList());
                 }
                 return true;
             default:
@@ -96,9 +94,8 @@ public class OrdersListActivity extends GeoListenerActivity {
     protected void onResume() {
         super.onResume();
         ProgressDialogFragment.dismissProgress(progress);
-        if (adapter != null) {
-            adapter.notifyDataSetChanged();
-        }
+        adapter = new OrdersAdapter(BCApplication.orders, order -> OrderActivity.startActivity(this, order));
+        ordersList.setAdapter(adapter);
         registerReceiver(timeTickReceiver, new IntentFilter(TimerService.TIME_TICK));
     }
     
@@ -120,7 +117,7 @@ public class OrdersListActivity extends GeoListenerActivity {
     }
     
     private void initOrdersList() {
-        RecyclerView ordersList = (RecyclerView) findViewById(R.id.ordersList);
+        ordersList = (RecyclerView) findViewById(R.id.ordersList);
         adapter = new OrdersAdapter(BCApplication.orders, order -> OrderActivity.startActivity(this, order));
         ordersList.setAdapter(adapter);
         ordersList.setLayoutManager(new LinearLayoutManager(this));
@@ -143,22 +140,22 @@ public class OrdersListActivity extends GeoListenerActivity {
             showToast("processOrders orders size = " + orders.size());
             //TODO: вернуть
             BCApplication.orders = (ArrayList<Order>) orders;
-            adapter.notifyDataSetChanged();
+            adapter = new OrdersAdapter(BCApplication.orders, order -> OrderActivity.startActivity(OrdersListActivity.this, order));
+            ordersList.setAdapter(adapter);
             ProgressDialogFragment.dismissProgress(progress);
         }
     
         @Override
         public void processOrderStatusChanged(int tracking) {
-            String savedCityName = PreferencesManager.getInstance(OrdersListActivity.this).getCurrentCity();
-            String cityUrl = City.getUrlByName(savedCityName);
-            if (!TextUtils.isEmpty(cityUrl)) {
-                restClient.getOrders(cityUrl, BCApplication.token, geoService.getGeoList());
+            City savedCity = City.getCityByName(OrdersListActivity.this);
+            if (savedCity != null) {
+                restClient.getOrders(savedCity.getUrl(), BCApplication.token, geoService.getGeoList());
             }
         }
         
         @Override
         public void showToast(String msg) {
-            Toast.makeText(OrdersListActivity.this, msg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(OrdersListActivity.this, msg, Toast.LENGTH_LONG).show();
         }
     }
 }

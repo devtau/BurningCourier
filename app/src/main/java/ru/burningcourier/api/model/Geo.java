@@ -1,6 +1,8 @@
 package ru.burningcourier.api.model;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Geo {
 
@@ -24,6 +26,13 @@ public class Geo {
 		this.spd = spd;
 	}
 	
+	
+	public static List<Geo> getMockGeos() {
+		List<Geo> geos = new ArrayList<>();
+		geos.add(new Geo("20140924173211", 11.11, 22.22, 220));
+		geos.add(new Geo("20140924173212", 11.12, 22.23, 224));
+		return geos;
+	}
 	
 	@Override
 	public String toString() {

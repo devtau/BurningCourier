@@ -1,15 +1,21 @@
 package ru.burningcourier.ui;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -18,30 +24,38 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import ru.burningcourier.BCApplication;
+import ru.burningcourier.adapters.StatusesAdapter;
 import ru.burningcourier.api.model.Order;
 import ru.burningcourier.R;
 import ru.burningcourier.api.RESTClient;
 import ru.burningcourier.api.RESTClientImpl;
 import ru.burningcourier.api.RESTClientView;
 import ru.burningcourier.api.model.City;
+import ru.burningcourier.api.model.Status;
 import ru.burningcourier.service.TimerService;
 import ru.burningcourier.utils.AppUtils;
-import ru.burningcourier.utils.PreferencesManager;
 
-public class OrderActivity extends GeoListenerActivity {
+public class OrderActivity extends GeoListenerActivity implements ConfirmationDialog.ConfirmationDialogListener {
     
     private static final String ORDER_EXTRA = "ORDER_EXTRA";
     private final static String LOG_TAG = "OrderActivity";
+    private static final int TAKE_PHOTO_REQUEST = 9732;
     private Order order;
     private RESTClient restClient;
     private BroadcastReceiver timeTickReceiver;
+    private StatusesAdapter adapter;
     private Toolbar toolbar;
     private TextView orderTimer;
-    private TextView nextStatus;
+    private List<Status> statuses;
     
     
     public static void startActivity(Context context, Order order) {
@@ -55,6 +69,7 @@ public class OrderActivity extends GeoListenerActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_order);
         order = getIntent().getParcelableExtra(ORDER_EXTRA);
+        initStatuses();
         initUI();
         restClient = new RESTClientImpl(new RESTClientViewImpl());
         
@@ -81,7 +96,7 @@ public class OrderActivity extends GeoListenerActivity {
                 openMap();
                 return true;
             case R.id.action_call:
-                Toast.makeText(this, "скоро это будет открывать диалог выбора типа звонка", Toast.LENGTH_LONG).show();
+                ConfirmationDialog.showDialog(order.orderId, ConfirmationDialog.ConfirmationType.CALL, getSupportFragmentManager());
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -100,25 +115,89 @@ public class OrderActivity extends GeoListenerActivity {
         registerReceiver(timeTickReceiver, new IntentFilter(TimerService.TIME_TICK));
     }
     
-    private void initUI() {
-        nextStatus = (TextView) findViewById(R.id.nextStatus);
-        findViewById(R.id.nextStatusContainer).setOnClickListener(v -> {
-            if (!order.isDelivered) {
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.adb_title)
-                        .setMessage(R.string.adb_msg)
-                        .setPositiveButton(R.string.adb_yes, (dialog, which) -> {
-                            String savedCityName = PreferencesManager.getInstance(OrderActivity.this).getCurrentCity();
-                            String cityUrl = City.getUrlByName(savedCityName);
-                            if (!TextUtils.isEmpty(cityUrl)) {
-                                restClient.changeStatus(cityUrl, BCApplication.token, order.orderId, order.nextStatus, geoService.getGeoList());
-                                finish();
-                            }
-                        })
-                        .setNegativeButton(R.string.adb_no, null)
-                        .show();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == TAKE_PHOTO_REQUEST && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+        }
+    }
+    
+    @Override
+    public void onConfirmed() {
+        City savedCity = City.getCityByName(this);
+        if (savedCity != null) {
+            restClient.changeStatus(savedCity.getUrl(), BCApplication.token, order.orderId, order.nextStatus, geoService.getGeoList());
+        }
+    }
+    
+    @Override
+    public void onCallCenterCallClicked() {
+        City savedCity = City.getCityByName(this);
+        if (savedCity != null) {
+            Intent intent = new Intent(Intent.ACTION_CALL);
+            intent.setData(Uri.parse("tel:+" + savedCity.getCallCenterPhone()));
+            startActivity(intent);
+        }
+    }
+    
+    @Override
+    public void onClientCallClicked() {
+        Toast.makeText(this, "ждите звонок", Toast.LENGTH_SHORT).show();
+        City savedCity = City.getCityByName(this);
+        if (savedCity != null) {
+            restClient.callClient(savedCity.getUrl(), BCApplication.token, order.orderId);
+        }
+    }
+    
+    @Override
+    public void takePhoto() {
+        dispatchTakePictureIntent();
+//        City savedCity = City.getCityByName(this);
+//        if (savedCity != null) {
+//            restClient.uploadPhoto(savedCity.getUrl(), BCApplication.token, order.orderId,
+//                    "https://yandex.ru/images/search?img_url=https%3A%2F%2Fgetbg.net%2Fupload%2Ffull%2Fwww.GetBg.net_World___New_Zealand_Starry_night_in_New_Zealand_060739_.jpg&text=%D1%84%D0%BE%D1%82%D0%BE&noreask=1&pos=0&lr=2&rpt=simage",
+//                    2500);
+//        }
+    }
+    
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        });
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this, "ru.burningcourier.fileprovider", photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, TAKE_PHOTO_REQUEST);
+            }
+        }
+    }
+    
+    @NonNull
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", storageDir);
+    }
+    
+    
+    private void initUI() {
+        View nextStatusContainer = findViewById(R.id.nextStatusContainer);
+        if (order.type.equals(Order.TYPE_BAMPSI)) {
+            initStatusesList();
+            nextStatusContainer.setVisibility(View.GONE);
+        } else {
+            nextStatusContainer.setOnClickListener(v -> {
+                if (!order.isDelivered) {
+                    ConfirmationDialog.showDialog(order.orderId, ConfirmationDialog.ConfirmationType.STATUS, getSupportFragmentManager());
+                }
+            });
+        }
+        
         String addressPlusNote = order.address;
         if (!TextUtils.isEmpty(order.note)) {
             addressPlusNote += ", " + order.note;
@@ -169,6 +248,27 @@ public class OrderActivity extends GeoListenerActivity {
         }
     }
     
+    private void initStatuses() {
+        City savedCity = City.getCityByName(this);
+        if (savedCity != null) {
+            switch (order.type) {
+                case Order.TYPE_BAMPSI:
+                    statuses = savedCity.getStatuses().getBampsiStatuses();
+                    break;
+                case Order.TYPE_SAKURA:
+                    statuses = savedCity.getStatuses().getSakuraStatuses();
+                    break;
+            }
+        }
+    }
+    
+    private void initStatusesList() {
+        RecyclerView statusesList = (RecyclerView) findViewById(R.id.statusesList);
+        adapter = new StatusesAdapter(statuses, order.nextStatus, status ->
+                ConfirmationDialog.showDialog(order.orderId, ConfirmationDialog.ConfirmationType.STATUS, getSupportFragmentManager()));
+        statusesList.setAdapter(adapter);
+        statusesList.setLayoutManager(new LinearLayoutManager(this));
+    }
     
     
     private class RESTClientViewImpl implements RESTClientView {
@@ -185,20 +285,20 @@ public class OrderActivity extends GeoListenerActivity {
         public void processOrders(List<Order> orders) {
             showToast("processOrders orders size = " + orders.size());
             BCApplication.orders = (ArrayList<Order>) orders;
+            finish();
         }
     
         @Override
         public void processOrderStatusChanged(int tracking) {
-            String savedCityName = PreferencesManager.getInstance(OrderActivity.this).getCurrentCity();
-            String cityUrl = City.getUrlByName(savedCityName);
-            if (!TextUtils.isEmpty(cityUrl)) {
-                restClient.getOrders(cityUrl, BCApplication.token, geoService.getGeoList());
+            City savedCity = City.getCityByName(OrderActivity.this);
+            if (savedCity != null) {
+                restClient.getOrders(savedCity.getUrl(), BCApplication.token, geoService.getGeoList());
             }
         }
     
         @Override
         public void showToast(String msg) {
-            Toast.makeText(OrderActivity.this, msg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(OrderActivity.this, msg, Toast.LENGTH_LONG).show();
         }
     }
 }

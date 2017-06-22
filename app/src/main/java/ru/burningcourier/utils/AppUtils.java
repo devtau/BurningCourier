@@ -5,6 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,8 +18,8 @@ public class AppUtils {
     
     private static final long RED_TIME = 15 * 60_000;
     private static final long HOUR = 60 * 60_000;
-    public static final long DAY = HOUR * 24;
-    public static final long SESSION_TIME = HOUR * 8;
+    private static final long DAY = HOUR * 24;
+    public static final long SESSION_TIME = DAY;
     public static final String DATE_FORMAT = "yyyyMMddHHmmss";
     public static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
     private static final String LOG_TAG = "AppUtils";
@@ -66,6 +67,10 @@ public class AppUtils {
     public static boolean checkConnection(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        boolean isConnected = networkInfo != null && networkInfo.isConnectedOrConnecting();
+        if (!isConnected) {
+            Toast.makeText(context, context.getString(R.string.no_internet), Toast.LENGTH_SHORT).show();
+        }
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 }

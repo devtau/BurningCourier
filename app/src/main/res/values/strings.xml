@@ -17,7 +17,7 @@
 
     <string name="receiving_data">Получение данных</string>
     <string name="next_status">Сменить статус</string>
-    <string name="deliver">Доставить</string>
+    <string name="delivered">Доставлено</string>
     <string name="map_Tab_Tag">MapTab</string>
     <string name="map_Tab_Indicator">Карта</string>
     <string name="api_key" templateMergeStrategy="preserve" translatable="false">
@@ -55,5 +55,13 @@
     <string name="permission_explanation_gps">Application requires access to your location in order to show you on map and help you navigate around event\'s area.</string>
     <string name="permission_needed">Permission needed</string>
     <string name="yandexmaps_uri_formatter" formatted="false">yandexmaps://maps.yandex.ru/?pt=%f,%f&amp;z=%d&amp;=map</string>
+    <string name="change_order_status">Изменить статус заказа</string>
+    <string name="who_you_gonna_call">Кому вы хотите позвонить?</string>
+    <string name="cancel">Отмена</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="call_center">Колл-центр</string>
+    <string name="client">Клиент</string>
+    <string name="camera">Камера</string>
+    <string name="payed_online">этот заказ был оплачен онлайн, для подтверждения статуса «доставлен» необходима фотография чека.</string>
     <!--yandexmaps://maps.yandex.ru/?pt=37.673098,55.757134&z=12&l=map-->
 </resources>

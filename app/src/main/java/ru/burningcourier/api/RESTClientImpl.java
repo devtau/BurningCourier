@@ -4,6 +4,10 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,9 +20,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import ru.burningcourier.api.model.Geo;
+import ru.burningcourier.api.requestBody.CallClientRequestBody;
 import ru.burningcourier.api.requestBody.ChangeStatusRequestBody;
 import ru.burningcourier.api.requestBody.LoginRequestBody;
 import ru.burningcourier.api.requestBody.OrdersRequestBody;
+import ru.burningcourier.api.requestBody.UploadPhotoRequestBody;
 import ru.burningcourier.api.response.ChangeStatusResponse;
 import ru.burningcourier.api.response.CitiesListResponse;
 import ru.burningcourier.api.response.LoginResponse;
@@ -92,7 +98,7 @@ public class RESTClientImpl implements RESTClient {
 	
 	@Override
 	public void getOrders(String cityUrl, String token, List<Geo> geos) {
-		Call<OrdersResponse> call = getBackendAPIClient(cityUrl).getOrders(token, new OrdersRequestBody(geos));
+		Call<OrdersResponse> call = getBackendAPIClient(cityUrl).getOrders(token, new OrdersRequestBody(Geo.getMockGeos()));
 		Callback<OrdersResponse> callback = new Callback<OrdersResponse>() {
 			@Override
 			public void onResponse (Call<OrdersResponse> call, Response<OrdersResponse> response){
@@ -115,7 +121,7 @@ public class RESTClientImpl implements RESTClient {
 	
 	@Override
 	public void changeStatus(String cityUrl, String token, String orderId, int newStatusId, List<Geo> geos) {
-		Call<ChangeStatusResponse> call = getBackendAPIClient(cityUrl).changeStatus(token, new ChangeStatusRequestBody(orderId, newStatusId, geos));
+		Call<ChangeStatusResponse> call = getBackendAPIClient(cityUrl).changeStatus(token, new ChangeStatusRequestBody(orderId, newStatusId, Geo.getMockGeos()));
 		Callback<ChangeStatusResponse> callback = new Callback<ChangeStatusResponse>() {
 			@Override
 			public void onResponse (Call<ChangeStatusResponse> call, Response<ChangeStatusResponse> response){
@@ -129,6 +135,50 @@ public class RESTClientImpl implements RESTClient {
 			
 			@Override
 			public void onFailure (Call <ChangeStatusResponse> call, Throwable t){
+				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
+				handleFailure(t.getLocalizedMessage());
+			}
+		};
+		call.enqueue(callback);
+	}
+	
+	@Override
+	public void callClient(String cityUrl, String token, String orderId) {
+		Call<Void> call = getBackendAPIClient(cityUrl).callClient(token, new CallClientRequestBody(orderId));
+		Callback<Void> callback = new Callback<Void>() {
+			@Override
+			public void onResponse (Call<Void> call, Response<Void> response){
+				if (response.isSuccessful()) {
+					Log.d(LOG_TAG, "retrofit callClient response isSuccessful");
+				} else {
+					handleError(response.code(), response.errorBody());
+				}
+			}
+			
+			@Override
+			public void onFailure (Call <Void> call, Throwable t){
+				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
+				handleFailure(t.getLocalizedMessage());
+			}
+		};
+		call.enqueue(callback);
+	}
+	
+	@Override
+	public void uploadPhoto(String cityUrl, String token, String orderId, String photoUrl, int checkSumm) {
+		Call<Void> call = getBackendAPIClient(cityUrl).uploadPhoto(token, new UploadPhotoRequestBody(orderId, photoUrl, checkSumm));
+		Callback<Void> callback = new Callback<Void>() {
+			@Override
+			public void onResponse (Call<Void> call, Response<Void> response){
+				if (response.isSuccessful()) {
+					Log.d(LOG_TAG, "retrofit uploadPhoto response isSuccessful");
+				} else {
+					handleError(response.code(), response.errorBody());
+				}
+			}
+			
+			@Override
+			public void onFailure (Call <Void> call, Throwable t){
 				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}
@@ -178,23 +228,30 @@ public class RESTClientImpl implements RESTClient {
 	}
 
 	private void handleError(int errorCode, ResponseBody errorBody) {
-		String logMsg = "retrofit response is not successful. errorCode: " + String.valueOf(errorCode);
-		switch (errorCode) {
-			case ErrorConstants.BAD_REQUEST:
-				logMsg += " Check request Json";
-				break;
-			case ErrorConstants.ANAUTHORIZED:
-				logMsg += " unauthorized. check token";
-				break;
-			case ErrorConstants.NOT_FOUND:
-				logMsg += " Not found";
-				break;
-			case ErrorConstants.PHONE_CODE_INVALID:
-				logMsg += " Invalid sms confirmation code";
-				break;
-			default:
-				logMsg += " Check ENDPOINT and method parameters if any";
-				break;
+		String logMsg = "Код ошибки: " + String.valueOf(errorCode) + " ";
+		try {
+			String errorSubCodeString = new JSONObject(errorBody.string()).getString("error");
+			logMsg += errorSubCodeString;
+			int errorSubCode = Integer.parseInt(errorSubCodeString);
+			switch (errorSubCode) {
+				case ErrorConstants.TOKEN_CREATION_FAILURE:
+					logMsg += "\nошибка создания токена";
+					break;
+				case ErrorConstants.TOKEN_EXPIRED:
+					logMsg += "\nсрок жизни токена истек";
+					break;
+				case ErrorConstants.NO_SUCH_USER:
+					logMsg += "\nсотрудник с таким телефоном не найден в базе";
+					break;
+				case ErrorConstants.WRONG_PASSWORD:
+					logMsg += "\nневерный пароль";
+					break;
+				case ErrorConstants.ALREADY_LOGGED_IN:
+					logMsg += "\nповторная авторизация с другого устройства в срок жизни токена";
+					break;
+			}
+		} catch (JSONException | IOException e) {
+			e.printStackTrace();
 		}
 		Log.e(LOG_TAG, logMsg);
 		view.showToast(logMsg);

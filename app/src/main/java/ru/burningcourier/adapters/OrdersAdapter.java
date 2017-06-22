@@ -1,4 +1,4 @@
-package ru.burningcourier;
+package ru.burningcourier.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,29 +7,30 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import java.util.List;
+import ru.burningcourier.R;
 import ru.burningcourier.api.model.Order;
 import ru.burningcourier.utils.AppUtils;
 
-public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.OrdersViewHolder> {
+public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder> {
 
 	private List<Order> data;
-	private ProductsAdapterListener listener;
+	private AdapterListener listener;
 
 
-	public OrdersAdapter(List<Order> data, ProductsAdapterListener listener) {
+	public OrdersAdapter(List<Order> data, AdapterListener listener) {
 		this.data = data;
 		this.listener = listener;
 	}
 
 
 	@Override
-	public OrdersViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-		View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_orders, parent, false);
-		return new OrdersViewHolder(view);
+	public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+		View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_order, parent, false);
+		return new ViewHolder(view);
 	}
 
 	@Override
-	public void onBindViewHolder(OrdersViewHolder holder, int position) {
+	public void onBindViewHolder(ViewHolder holder, int position) {
 		Order order = data.get(position);
 		holder.orderId.setText(String.valueOf(order.orderId));
 		holder.address.setText(order.address);
@@ -45,21 +46,21 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.OrdersView
 
 
 
-	public interface ProductsAdapterListener {
+	public interface AdapterListener {
 		void onOrderSelected(Order order);
 	}
 	
 	
 	
-	class OrdersViewHolder extends RecyclerView.ViewHolder {
+	class ViewHolder extends RecyclerView.ViewHolder {
         
         View root;
         TextView orderId;
         TextView address;
         TextView timer;
-    
-    
-        OrdersViewHolder(View itemView) {
+		
+		
+		ViewHolder(View itemView) {
             super(itemView);
             root = itemView;
 			orderId = (TextView) itemView.findViewById(R.id.orderId);
