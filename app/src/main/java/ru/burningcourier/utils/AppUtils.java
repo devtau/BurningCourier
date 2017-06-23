@@ -1,16 +1,27 @@
 package ru.burningcourier.utils;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Build;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import ru.burningcourier.api.BackendAPI;
 import ru.burningcourier.api.model.Order;
 import ru.burningcourier.R;
 
@@ -72,5 +83,44 @@ public class AppUtils {
             Toast.makeText(context, context.getString(R.string.no_internet), Toast.LENGTH_SHORT).show();
         }
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
+    }
+    
+    public static File compressFile(File photoFile) {
+        int fileSizeKb = Math.round(photoFile.length() / 1024);
+        int targetFileSizeKb = 1024;
+        if (fileSizeKb < targetFileSizeKb) return photoFile;
+        
+        int compressRate = Math.round(targetFileSizeKb * 100 / fileSizeKb);
+        Bitmap bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
+        File photoFileCompressed = new File(photoFile.getParentFile(), photoFile.getName() + "-compressed.jpg");
+        FileOutputStream out = null;
+        try {
+            photoFileCompressed.createNewFile();
+            out = new FileOutputStream(photoFileCompressed.getAbsolutePath());
+            bitmap.compress(Bitmap.CompressFormat.JPEG, compressRate, out);
+            photoFile.delete();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                if (out != null) out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        Log.d(LOG_TAG, "photoFile of " + fileSizeKb + "Kb compressed to " + Math.round(photoFileCompressed.length() / 1024) + "Kb");
+        return photoFileCompressed;
+    }
+    
+    public static Uri buildUriFromPath(String validPath, Context context) {
+        Uri fileUri;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            fileUri = FileProvider.getUriForFile(context, "ru.burningcourier.fileprovider", new File(validPath));
+        } else {
+            fileUri = Uri.fromFile(new File(validPath));
+        }
+        Log.d(LOG_TAG, "buildUriFromPath fileUri is: " + fileUri);
+        return fileUri;
     }
 }

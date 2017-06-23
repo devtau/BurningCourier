@@ -63,5 +63,9 @@
     <string name="client">Клиент</string>
     <string name="camera">Камера</string>
     <string name="payed_online">этот заказ был оплачен онлайн, для подтверждения статуса «доставлен» необходима фотография чека.</string>
+    <string name="check_photo_required">потребуется фото чека</string>
+    <string name="check_sum">сумма чека</string>
+    <string name="check_sum_incorrect">Ошибка в сумме чека</string>
+    <string name="wait_for_server_response">Ожидайте ответа сервера</string>
     <!--yandexmaps://maps.yandex.ru/?pt=37.673098,55.757134&z=12&l=map-->
 </resources>

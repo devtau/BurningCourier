@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -24,7 +23,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -34,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import ru.burningcourier.BCApplication;
 import ru.burningcourier.adapters.StatusesAdapter;
+import ru.burningcourier.api.BackendAPI;
 import ru.burningcourier.api.model.Order;
 import ru.burningcourier.R;
 import ru.burningcourier.api.RESTClient;
@@ -52,10 +51,11 @@ public class OrderActivity extends GeoListenerActivity implements ConfirmationDi
     private Order order;
     private RESTClient restClient;
     private BroadcastReceiver timeTickReceiver;
-    private StatusesAdapter adapter;
     private Toolbar toolbar;
     private TextView orderTimer;
     private List<Status> statuses;
+    private File photoFile;
+    private int checkSumValue;
     
     
     public static void startActivity(Context context, Order order) {
@@ -118,7 +118,10 @@ public class OrderActivity extends GeoListenerActivity implements ConfirmationDi
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == TAKE_PHOTO_REQUEST && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
+            File compressedFile = AppUtils.compressFile(photoFile);
+            Uri compressedFileUri = AppUtils.buildUriFromPath(compressedFile.getAbsolutePath(), this);
+            restClient.uploadPhoto(BackendAPI.PHOTO_API_BASE_URL, order.orderId, getContentResolver(), compressedFileUri, compressedFile);
+            Toast.makeText(this, R.string.wait_for_server_response, Toast.LENGTH_LONG).show();
         }
     }
     
@@ -150,28 +153,19 @@ public class OrderActivity extends GeoListenerActivity implements ConfirmationDi
     }
     
     @Override
-    public void takePhoto() {
-        dispatchTakePictureIntent();
-//        City savedCity = City.getCityByName(this);
-//        if (savedCity != null) {
-//            restClient.uploadPhoto(savedCity.getUrl(), BCApplication.token, order.orderId,
-//                    "https://yandex.ru/images/search?img_url=https%3A%2F%2Fgetbg.net%2Fupload%2Ffull%2Fwww.GetBg.net_World___New_Zealand_Starry_night_in_New_Zealand_060739_.jpg&text=%D1%84%D0%BE%D1%82%D0%BE&noreask=1&pos=0&lr=2&rpt=simage",
-//                    2500);
-//        }
-    }
-    
-    private void dispatchTakePictureIntent() {
+    public void takePhoto(int checkSumValue) {
+        this.checkSumValue = checkSumValue;
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
+            photoFile = null;
             try {
                 photoFile = createImageFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this, "ru.burningcourier.fileprovider", photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                Uri photoUri = FileProvider.getUriForFile(this, "ru.burningcourier.fileprovider", photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 startActivityForResult(takePictureIntent, TAKE_PHOTO_REQUEST);
             }
         }
@@ -181,7 +175,7 @@ public class OrderActivity extends GeoListenerActivity implements ConfirmationDi
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        return File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", storageDir);
+        return File.createTempFile("JPEG_" + timeStamp + "_", "", storageDir);
     }
     
     
@@ -264,9 +258,13 @@ public class OrderActivity extends GeoListenerActivity implements ConfirmationDi
     
     private void initStatusesList() {
         RecyclerView statusesList = (RecyclerView) findViewById(R.id.statusesList);
-        adapter = new StatusesAdapter(statuses, order.nextStatus, status ->
-                ConfirmationDialog.showDialog(order.orderId, ConfirmationDialog.ConfirmationType.STATUS, getSupportFragmentManager()));
-        statusesList.setAdapter(adapter);
+        statusesList.setAdapter(new StatusesAdapter(statuses, order.nextStatus, order.isCash, status -> {
+            boolean isCheckRequired = status.getId() == StatusesAdapter.STATUS_DELIVERED && !order.isCash;
+            ConfirmationDialog.ConfirmationType type = isCheckRequired ?
+                    ConfirmationDialog.ConfirmationType.PHOTO :
+                    ConfirmationDialog.ConfirmationType.STATUS;
+            ConfirmationDialog.showDialog(order.orderId, type, getSupportFragmentManager());
+        }));
         statusesList.setLayoutManager(new LinearLayoutManager(this));
     }
     
@@ -283,8 +281,12 @@ public class OrderActivity extends GeoListenerActivity implements ConfirmationDi
     
         @Override
         public void processOrders(List<Order> orders) {
-            showToast("processOrders orders size = " + orders.size());
+//            showToast("processOrders orders size = " + orders.size());
+            //TODO: вернуть
             BCApplication.orders = (ArrayList<Order>) orders;
+//            for (Order order : BCApplication.orders) {
+//                order.isCash = false;
+//            }
             finish();
         }
     
@@ -294,6 +296,20 @@ public class OrderActivity extends GeoListenerActivity implements ConfirmationDi
             if (savedCity != null) {
                 restClient.getOrders(savedCity.getUrl(), BCApplication.token, geoService.getGeoList());
             }
+        }
+    
+        @Override
+        public void processPhotoUploaded(String photoNameOnServer) {
+            City savedCity = City.getCityByName(OrderActivity.this);
+            if (savedCity != null) {
+                String fullPhotoUrl = BackendAPI.PHOTO_API_BASE_URL + BackendAPI.VIEW_PHOTO_ENDPOINT + photoNameOnServer;
+                restClient.uploadPhotoUrl(savedCity.getUrl(), BCApplication.token, order.orderId, fullPhotoUrl, checkSumValue);
+            }
+        }
+    
+        @Override
+        public void processPhotoUrlUploaded() {
+            finish();
         }
     
         @Override

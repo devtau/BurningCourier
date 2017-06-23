@@ -166,7 +166,7 @@ public class Order implements Parcelable {
     
     public static ArrayList<Order> getMockOrders() {
         ArrayList<Order> orders = new ArrayList<>();
-        String date = "20170622";
+        String date = "20170623";
         orders.add(new Order("SW-977-666-245-064", AppUtils.formatDate(date + "060000"), "Санкт-Петербург, Шаумяна, 27-12",
                 "встретить у подъезда, домофон 125", TYPE_BAMPSI, 4, 5, false, 59.931772, 30.415403));
         orders.add(new Order("SW-977-666-245-065", AppUtils.formatDate(date + "080000"), "Санкт-Петербург, Энергетиков, 9-1-20",

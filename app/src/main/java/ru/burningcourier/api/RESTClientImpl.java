@@ -1,5 +1,7 @@
 package ru.burningcourier.api;
 
+import android.content.ContentResolver;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.gson.Gson;
@@ -8,10 +10,15 @@ import com.google.gson.GsonBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -24,11 +31,12 @@ import ru.burningcourier.api.requestBody.CallClientRequestBody;
 import ru.burningcourier.api.requestBody.ChangeStatusRequestBody;
 import ru.burningcourier.api.requestBody.LoginRequestBody;
 import ru.burningcourier.api.requestBody.OrdersRequestBody;
-import ru.burningcourier.api.requestBody.UploadPhotoRequestBody;
+import ru.burningcourier.api.requestBody.UploadPhotoUrlRequestBody;
 import ru.burningcourier.api.response.ChangeStatusResponse;
 import ru.burningcourier.api.response.CitiesListResponse;
 import ru.burningcourier.api.response.LoginResponse;
 import ru.burningcourier.api.response.OrdersResponse;
+import ru.burningcourier.api.response.UploadPhotoResponse;
 import ru.burningcourier.utils.AppUtils;
 /**
  * library authors page: http://square.github.io/retrofit/
@@ -64,7 +72,6 @@ public class RESTClientImpl implements RESTClient {
 			
 			@Override
 			public void onFailure (Call <CitiesListResponse> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}
 		};
@@ -88,7 +95,6 @@ public class RESTClientImpl implements RESTClient {
 			
 			@Override
 			public void onFailure (Call <LoginResponse> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				view.processLoginFail();
 				handleFailure(t.getLocalizedMessage());
 			}
@@ -112,7 +118,6 @@ public class RESTClientImpl implements RESTClient {
 			
 			@Override
 			public void onFailure (Call <OrdersResponse> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}
 		};
@@ -135,7 +140,6 @@ public class RESTClientImpl implements RESTClient {
 			
 			@Override
 			public void onFailure (Call <ChangeStatusResponse> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}
 		};
@@ -157,7 +161,6 @@ public class RESTClientImpl implements RESTClient {
 			
 			@Override
 			public void onFailure (Call <Void> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}
 		};
@@ -165,13 +168,40 @@ public class RESTClientImpl implements RESTClient {
 	}
 	
 	@Override
-	public void uploadPhoto(String cityUrl, String token, String orderId, String photoUrl, int checkSumm) {
-		Call<Void> call = getBackendAPIClient(cityUrl).uploadPhoto(token, new UploadPhotoRequestBody(orderId, photoUrl, checkSumm));
+	public void uploadPhoto(String serverBaseUrl, String orderId, ContentResolver contentResolver, Uri fileUri, File photoFile) {
+        RequestBody requestFile = RequestBody.create(MediaType.parse(contentResolver.getType(fileUri)), photoFile);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("check photo", photoFile.getName(), requestFile);
+        RequestBody description = RequestBody.create(okhttp3.MultipartBody.FORM, orderId);
+        
+        Call<UploadPhotoResponse> call = getBackendAPIClient(serverBaseUrl).uploadPhoto(description, body);
+		Callback<UploadPhotoResponse> callback = new Callback<UploadPhotoResponse>() {
+			@Override
+			public void onResponse (Call<UploadPhotoResponse> call, Response<UploadPhotoResponse> response){
+				if (response.isSuccessful()) {
+					Log.d(LOG_TAG, "retrofit uploadPhoto response isSuccessful. filename = " + response.body().getFilename());
+					view.processPhotoUploaded(response.body().getFilename());
+				} else {
+					handleError(response.code(), response.errorBody());
+				}
+			}
+			
+			@Override
+			public void onFailure (Call <UploadPhotoResponse> call, Throwable t){
+				handleFailure(t.getLocalizedMessage());
+			}
+		};
+		call.enqueue(callback);
+	}
+	
+	@Override
+	public void uploadPhotoUrl(String cityUrl, String token, String orderId, String photoUrl, int checkSumm) {
+		Call<Void> call = getBackendAPIClient(cityUrl).uploadPhotoUrl(token, new UploadPhotoUrlRequestBody(orderId, photoUrl, checkSumm));
 		Callback<Void> callback = new Callback<Void>() {
 			@Override
 			public void onResponse (Call<Void> call, Response<Void> response){
 				if (response.isSuccessful()) {
-					Log.d(LOG_TAG, "retrofit uploadPhoto response isSuccessful");
+					Log.d(LOG_TAG, "retrofit uploadPhotoUrl response isSuccessful");
+					view.processPhotoUrlUploaded();
 				} else {
 					handleError(response.code(), response.errorBody());
 				}
@@ -179,7 +209,6 @@ public class RESTClientImpl implements RESTClient {
 			
 			@Override
 			public void onFailure (Call <Void> call, Throwable t){
-				Log.e(LOG_TAG, "retrofit failure: " + t.getLocalizedMessage());
 				handleFailure(t.getLocalizedMessage());
 			}
 		};
@@ -250,7 +279,7 @@ public class RESTClientImpl implements RESTClient {
 					logMsg += "\nповторная авторизация с другого устройства в срок жизни токена";
 					break;
 			}
-		} catch (JSONException | IOException e) {
+		} catch (JSONException | IOException | NumberFormatException e) {
 			e.printStackTrace();
 		}
 		Log.e(LOG_TAG, logMsg);
@@ -264,6 +293,8 @@ public class RESTClientImpl implements RESTClient {
 	}
 
 	private void handleFailure(String failureMessage) {
-		view.showToast(failureMessage);
+		String msg = "ошибка. возможно отсутствует доступ в интернет: " + failureMessage;
+		Log.e(LOG_TAG, msg);
+		view.showToast(msg);
 	}
 }

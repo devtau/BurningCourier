@@ -137,9 +137,12 @@ public class OrdersListActivity extends GeoListenerActivity {
         
         @Override
         public void processOrders(List<Order> orders) {
-            showToast("processOrders orders size = " + orders.size());
+//            showToast("processOrders orders size = " + orders.size());
             //TODO: вернуть
             BCApplication.orders = (ArrayList<Order>) orders;
+//            for (Order order : BCApplication.orders) {
+//                order.isCash = false;
+//            }
             adapter = new OrdersAdapter(BCApplication.orders, order -> OrderActivity.startActivity(OrdersListActivity.this, order));
             ordersList.setAdapter(adapter);
             ProgressDialogFragment.dismissProgress(progress);
@@ -152,6 +155,12 @@ public class OrdersListActivity extends GeoListenerActivity {
                 restClient.getOrders(savedCity.getUrl(), BCApplication.token, geoService.getGeoList());
             }
         }
+    
+        @Override
+        public void processPhotoUploaded(String photoUrl) {/*NOP*/}
+    
+        @Override
+        public void processPhotoUrlUploaded() {/*NOP*/}
         
         @Override
         public void showToast(String msg) {

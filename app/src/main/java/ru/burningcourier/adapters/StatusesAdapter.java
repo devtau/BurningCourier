@@ -14,14 +14,17 @@ import ru.burningcourier.api.model.Status;
 
 public class StatusesAdapter extends RecyclerView.Adapter<StatusesAdapter.ViewHolder> {
 
+	public static final int STATUS_DELIVERED = 8;
 	private List<Status> data;
 	private int nextStatus;
+	private boolean isCash;
 	private AdapterListener listener;
 
 
-	public StatusesAdapter(List<Status> data, int nextStatus, AdapterListener listener) {
+	public StatusesAdapter(List<Status> data, int nextStatus, boolean isCash, AdapterListener listener) {
 		this.data = data;
 		this.nextStatus = nextStatus;
+		this.isCash = isCash;
 		this.listener = listener;
 	}
 
@@ -45,6 +48,9 @@ public class StatusesAdapter extends RecyclerView.Adapter<StatusesAdapter.ViewHo
 			statusIcon = R.drawable.status_not_active;
 			holder.statusName.setTextColor(ContextCompat.getColor(holder.getContext(), R.color.colorGray174));
 		}
+		if (status.getId() == STATUS_DELIVERED && !isCash) {
+			holder.checkPhotoRequired.setVisibility(View.VISIBLE);
+		}
 		holder.statusIcon.setImageResource(statusIcon);
 		holder.statusName.setText(status.getTextId());
 	}
@@ -67,6 +73,7 @@ public class StatusesAdapter extends RecyclerView.Adapter<StatusesAdapter.ViewHo
         View root;
 		ImageView statusIcon;
         TextView statusName;
+        TextView checkPhotoRequired;
 		
 		
 		ViewHolder(View itemView) {
@@ -74,6 +81,7 @@ public class StatusesAdapter extends RecyclerView.Adapter<StatusesAdapter.ViewHo
             root = itemView;
 			statusIcon = (ImageView) itemView.findViewById(R.id.statusIcon);
 			statusName = (TextView) itemView.findViewById(R.id.statusName);
+			checkPhotoRequired = (TextView) itemView.findViewById(R.id.checkPhotoRequired);
         }
         
         public Context getContext() {

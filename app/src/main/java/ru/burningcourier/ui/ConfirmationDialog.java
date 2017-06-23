@@ -8,12 +8,16 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import ru.burningcourier.R;
 import ru.burningcourier.utils.AppUtils;
 
@@ -82,6 +86,7 @@ public class ConfirmationDialog extends DialogFragment {
         TextView subTitle = ((TextView) view.findViewById(R.id.subTitle));
         TextView firstButton = ((TextView) view.findViewById(R.id.firstButton));
         TextView secondButton = ((TextView) view.findViewById(R.id.secondButton));
+        EditText checkSum = ((EditText) view.findViewById(R.id.checkSum));
         
         switch (confirmationType) {
             case STATUS:
@@ -120,17 +125,23 @@ public class ConfirmationDialog extends DialogFragment {
                 firstButton.setOnClickListener(v -> dismiss());
                 secondButton.setText(R.string.camera);
                 secondButton.setOnClickListener(v -> {
-                    takePhoto();
+                    int checkSumValue = 0;
+                    try {
+                        checkSumValue = Integer.parseInt(checkSum.getText().toString());
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                    }
+                    if (TextUtils.isEmpty(checkSum.getText()) || checkSumValue == 0) {
+                        Toast.makeText(getContext(), R.string.check_sum_incorrect, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    listener.takePhoto(checkSumValue);
                     dismiss();
                 });
+                view.findViewById(R.id.checkSumContainer).setVisibility(View.VISIBLE);
                 break;
         }
-        view.findViewById(R.id.thirdButton).setOnClickListener(v -> listener.takePhoto());
         return view;
-    }
-    
-    private void takePhoto() {
-        
     }
     
     
@@ -139,7 +150,7 @@ public class ConfirmationDialog extends DialogFragment {
         void onConfirmed();
         void onCallCenterCallClicked();
         void onClientCallClicked();
-        void takePhoto();
+        void takePhoto(int checkSum);
     }
     
     public enum ConfirmationType {

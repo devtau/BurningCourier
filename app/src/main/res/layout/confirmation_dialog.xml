@@ -64,6 +64,26 @@
         android:textSize="16sp"/>
 
 
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/checkSumContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/checkSum"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="@string/check_sum"
+            android:textSize="18sp"
+            android:theme="@style/CustomEditText"/>
+    </android.support.design.widget.TextInputLayout>
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -101,11 +121,4 @@
             android:textAllCaps="true"
             android:background="?attr/selectableItemBackground"/>
     </LinearLayout>
-
-    <Button
-        android:id="@+id/thirdButton"
-        tools:text="photo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"/>
 </LinearLayout>

@@ -37,7 +37,8 @@
 
         <activity
             android:name=".ui.OrdersListActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait">
+        </activity>
 
         <activity
             android:name=".ui.OrderActivity"

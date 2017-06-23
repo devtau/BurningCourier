@@ -10,5 +10,7 @@ public interface RESTClientView {
 	void processLoginFail();
 	void processOrders(List<Order> menuCategoriesList);
 	void processOrderStatusChanged(int tracking);
-	void showToast(String msg);
+    void processPhotoUploaded(String photoUrl);
+    void processPhotoUrlUploaded();
+    void showToast(String msg);
 }

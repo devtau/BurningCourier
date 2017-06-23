@@ -2,7 +2,7 @@ package ru.burningcourier.api.requestBody;
 
 import com.google.gson.annotations.SerializedName;
 
-public class UploadPhotoRequestBody {
+public class UploadPhotoUrlRequestBody {
     
     @SerializedName("order_id")
     private String orderId;
@@ -14,7 +14,7 @@ public class UploadPhotoRequestBody {
     private int checkSumm;
     
     
-    public UploadPhotoRequestBody(String orderId, String photoUrl, int checkSumm) {
+    public UploadPhotoUrlRequestBody(String orderId, String photoUrl, int checkSumm) {
         this.orderId = orderId;
         this.photoUrl = photoUrl;
         this.checkSumm = checkSumm;
