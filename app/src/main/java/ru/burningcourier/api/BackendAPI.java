@@ -23,18 +23,17 @@ import ru.burningcourier.api.response.UploadPhotoResponse;
 public interface BackendAPI {
 	
 //	адрес сервера до 01.06.17: 93.92.194.154
-	String BC_API_BASE_URL = "http://91.190.82.49:8096/";
+	String BC_API_BASE_URL = "http://91.190.82.49:8096/sakura_mobile/hs/courier_test/";
 	String PHOTO_API_BASE_URL = "http://courier.stage.devcluster.ru";
-	String SUFFIX = "/sakura_mobile/hs/courier_test";
 
-	String CITIES_LIST_ENDPOINT = SUFFIX + "/config";
-	String LOGIN_ENDPOINT = SUFFIX + "/auth";
-	String ORDERS_ENDPOINT = SUFFIX + "/orders";
-	String CHANGE_STATUS_ENDPOINT = SUFFIX + "/changestatus";
-	String CALL_CLIENT_ENDPOINT = SUFFIX + "/call";
+	String CITIES_LIST_ENDPOINT = "config";
+	String LOGIN_ENDPOINT = "auth";
+	String ORDERS_ENDPOINT = "orders";
+	String CHANGE_STATUS_ENDPOINT = "changestatus";
+	String CALL_CLIENT_ENDPOINT = "call";
     String UPLOAD_PHOTO_ENDPOINT = "/courier";
     String VIEW_PHOTO_ENDPOINT = "/files/";
-    String UPLOAD_PHOTO_URL_ENDPOINT = SUFFIX + "/uploadphoto";
+    String UPLOAD_PHOTO_URL_ENDPOINT = "uploadphoto";
 	
 	
 	@GET(CITIES_LIST_ENDPOINT)

@@ -146,12 +146,7 @@ public class AuthenticationActivity extends GeoListenerActivity {
     
         @Override
         public void processOrders(List<Order> orders) {
-//            showToast("processOrders orders size = " + orders.size());
-            //TODO: вернуть
             BCApplication.orders = (ArrayList<Order>) orders;
-//            for (Order order : BCApplication.orders) {
-//                order.isCash = false;
-//            }
             ProgressDialogFragment.dismissProgress(progress);
             startActivity(new Intent(AuthenticationActivity.this, OrdersListActivity.class));
             finish();

@@ -6,7 +6,7 @@ android {
         release {
             keyAlias 'sakura'
             keyPassword 'Qwerty1234567'
-            storeFile file('C:/Projects/sakura_key.jks')
+            storeFile file('../keystore.jks')
             storePassword 'Qwerty1234567'
         }
     }

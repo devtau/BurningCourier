@@ -137,12 +137,7 @@ public class OrdersListActivity extends GeoListenerActivity {
         
         @Override
         public void processOrders(List<Order> orders) {
-//            showToast("processOrders orders size = " + orders.size());
-            //TODO: вернуть
             BCApplication.orders = (ArrayList<Order>) orders;
-//            for (Order order : BCApplication.orders) {
-//                order.isCash = false;
-//            }
             adapter = new OrdersAdapter(BCApplication.orders, order -> OrderActivity.startActivity(OrdersListActivity.this, order));
             ordersList.setAdapter(adapter);
             ProgressDialogFragment.dismissProgress(progress);

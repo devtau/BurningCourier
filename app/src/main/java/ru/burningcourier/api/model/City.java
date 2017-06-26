@@ -49,7 +49,7 @@ public class City {
 		for (City city : BCApplication.cities) {
 			if (city.getName().equals(savedCityName)) {
 				if (TextUtils.isEmpty(city.getUrl())
-						|| city.getStatuses() == null || (city.getStatuses().getBampsiStatuses() == null || city.getStatuses().getSakuraStatuses() == null)
+						|| city.getStatuses() == null || (city.getStatuses().getBampsiStatuses() == null && city.getStatuses().getSakuraStatuses() == null)
 						|| city.getCallCenterPhone() == null || city.getCallCenterPhone() == 0) {
 					String errorMsg = "непредвиденное состояние. у сохраненного города не заполнены url, statuses или callCenterPhone";
 					Log.e(LOG_TAG, errorMsg);
