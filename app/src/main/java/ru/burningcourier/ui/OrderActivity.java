@@ -92,7 +92,6 @@ public class OrderActivity extends GeoListenerActivity implements ConfirmationDi
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_open_map:
-//                MapsActivity.startActivity(this, order.addressLat, order.addressLon, "цель");
                 openMap();
                 return true;
             case R.id.action_call:
