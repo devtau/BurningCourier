@@ -16,8 +16,8 @@ android {
         applicationId "ru.burningcourier2"
         minSdkVersion 15
         targetSdkVersion 22
-        versionCode 25
-        versionName '3.0.0'
+        versionCode 26
+        versionName '4.0.0'
         signingConfig signingConfigs.release
     }
     buildTypes {
